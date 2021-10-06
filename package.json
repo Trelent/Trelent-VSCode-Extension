@@ -4,6 +4,8 @@
   "displayName": "Trelent",
   "description": "Generates documentation at the press of a hotkey!",
   "version": "0.0.1",
+  "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
+  "icon": "https://trelent.gallerycdn.vsassets.io/extensions/trelent/83007163",
   "engines": {
     "vscode": "^1.60.0"
   },
