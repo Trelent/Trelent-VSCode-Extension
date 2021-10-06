@@ -54,8 +54,6 @@ export function activate(context: vscode.ExtensionContext) {
 				const parser = new Parser();
 				parser.setLanguage(lang);
 				language.parser = parser;
-
-				console.log('Added language parser.');
 			}
 		}
 	}
@@ -239,9 +237,11 @@ function generateSnippetDocstring(context: vscode.ExtensionContext, snippet: Str
 			}
 		})
 		.then((response: any) => {
+			// Success!
 			return response.data;
 		})
 		.catch((error: Error) => {
+			// Likely an authentication issue
 			console.error(error);
 			return null;
 		});
