@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent",
   "description": "Generates documentation at the press of a hotkey!",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "https://trelent.gallerycdn.vsassets.io/extensions/trelent/83007163",
   "engines": {
@@ -29,9 +29,9 @@
     ],
     "keybindings": [
       {
-          "command": "trelent.generateDocstring",
-          "key": "ctrl+shift+2",
-          "mac": "cmd+shift+2"
+        "command": "trelent.generateDocstring",
+        "key": "ctrl+shift+2",
+        "mac": "cmd+shift+2"
       }
     ]
   },
