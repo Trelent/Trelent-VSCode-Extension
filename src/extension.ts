@@ -180,7 +180,7 @@ export function activate(context: vscode.ExtensionContext) {
 								});
 							}
 							else {
-								// Not signed in!
+								// Not signed in, or something went wrong on our end!
 								vscode.window.showErrorMessage("Authentication failed. Double check that you copied in your API Key correctly.");
 							}
 						});
@@ -219,21 +219,25 @@ function getAPIKey(context: vscode.ExtensionContext) {
 }
 
 function generateSnippetDocstring(context: vscode.ExtensionContext, snippet: String, lang: String) {
+
 	return getAPIKey(context)
 	.then(key => {
+
+		// Setup our data
+		let reqBody = {
+			'language': lang,
+			'sender': 'ext-vscode',
+			'snippet': snippet,
+			'user': key,
+		};
+
 		return axios({
 			method: 'post',
 			url: "https://trelent.npkn.net/generate-docstring",
-			data: snippet,
+			data: JSON.stringify(reqBody),
 			headers: {
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Api-Key': key,
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Type': 'application/json',
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				'Trelent-Sender': 'ext-vscode',
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				'Trelent-Language': lang
 			}
 		})
 		.then((response: any) => {
