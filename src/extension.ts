@@ -236,7 +236,9 @@ function generateSnippetDocstring(context: vscode.ExtensionContext, snippet: Str
 			url: "https://trelent.npkn.net/generate-docstring",
 			data: JSON.stringify(reqBody),
 			headers: {
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Api-Key': key,
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Type': 'application/json',
 			}
 		})
