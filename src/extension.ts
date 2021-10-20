@@ -64,7 +64,6 @@ export function activate(context: vscode.ExtensionContext) {
 	let addNewLanguageForNewDocument = vscode.workspace.onDidOpenTextDocument(updateLanguageParsers);
 
 	// Display a users API Key
-	// TODO: REMOVE FROM PROD - THIS IS FOR TESTING ONLY
 	let getKey = vscode.commands.registerCommand('trelent.getKey', () => {
 		getAPIKey(context)
 		.then(value => {
@@ -89,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 				// Update the global state with the new key
 				context.secrets.store("trelent_api_key", value)
 				.then(() => {
-					vscode.window.showInformationMessage("Signed in successfully!");
+					vscode.window.showInformationMessage("API Key was updated successfully!");
 				});
 			}
 			else {
@@ -125,65 +124,87 @@ export function activate(context: vscode.ExtensionContext) {
 						// Let's try parsing the inputted snippet
 						let languageId = editor.document.languageId;
 
-						// Generate our docstrings
-						generateSnippetDocstring(context, snippet, languageId)
-						.then(response => {
-							if(response != null) {
+						if(languageId == "python" || languageId == "javascript") {
+							// Generate our docstrings
+							generateSnippetDocstring(context, snippet, languageId)
+							.then(response => {
+								if(response != null) {
 
-								// Quickly setup our docstring editor
-								const docstrings = response.docstrings;
-								let resultantString = '\n\n\n\n\n\n\n\n\n\n';
-								
-								let i = 0;
-								for(let docstring of docstrings) {
-									resultantString += `# ${docIndexList[i]}:\n\n` + docstring + `\n\n`;
-									i++;
-								}
+									// Quickly setup our docstring editor
+									const docstrings = response.docstrings;
+									let resultantString = '\n\n\n\n\n\n\n\n\n\n';
+									
+									let i = 0;
+									for(let docstring of docstrings) {
+										if(languageId == "python") {
 
-								vscode.workspace.openTextDocument({language: languageId, content: resultantString})
-								.then(document => {
-									if(document != null) {
-										vscode.window.showTextDocument(document, vscode.ViewColumn.Beside)
-										.then(secondEditor => {
+											// Python comment style
+											resultantString += `# ${docIndexList[i]}:\n\n` + docstring + `\n\n`;
 
-											// Create our quick pick
-											vscode.window.showQuickPick(docIndexList, {
-												ignoreFocusOut: true,
-												title: "Which Docstring would you like to use?"
-											})
-											.then(docIndex => {
-												if(docIndex != null) {
+										}
+										else if(languageId == "javascript") {
 
-													//TODO: We should send telemetry to our server later on so we can predict what selection a user is most likely to make
+											// JS comment style
+											resultantString += `// ${docIndexList[i]}:\n\n` + docstring + `\n\n`;
+										}
+										else {
 
-													// User selected this docstring!
-													// Insert it into our document
-													let docStringPos = new vscode.Position(selection.start.line, 0);
-													let docStringRange = new vscode.Range(docStringPos, docStringPos);
-													let index = parseInt(docIndex.slice(10)) - 1;
-													editor?.insertSnippet(new vscode.SnippetString(docstrings[index] + '\n'), docStringRange);
-												}
-												else {
-													if(editor?.viewColumn != null) {
-														vscode.window.showTextDocument(secondEditor.document, editor.viewColumn.valueOf() + 1)
-														.then(editor => {
-															
-														});
-
-														// Not signed in!
-														vscode.window.showErrorMessage("Docstring generation cancelled!");
-													}
-												}
-											});
-										});
+											// Default back to Python
+											resultantString += `# ${docIndexList[i]}:\n\n` + docstring + `\n\n`;
+										}
+										i++;
 									}
-								});
-							}
-							else {
-								// Not signed in, or something went wrong on our end!
-								vscode.window.showErrorMessage("Authentication failed. Double check that you copied in your API Key correctly.");
-							}
-						});
+
+									vscode.workspace.openTextDocument({language: languageId, content: resultantString})
+									.then(document => {
+										if(document != null) {
+											vscode.window.showTextDocument(document, vscode.ViewColumn.Beside)
+											.then(secondEditor => {
+
+												// Create our quick pick
+												vscode.window.showQuickPick(docIndexList, {
+													ignoreFocusOut: true,
+													title: "Which Docstring would you like to use?"
+												})
+												.then(docIndex => {
+													if(docIndex != null) {
+
+														//TODO: We should send telemetry to our server later on so we can predict what selection a user is most likely to make
+
+														// User selected this docstring!
+														// Insert it into our document
+														let docStringPos = new vscode.Position(selection.start.line, 0);
+														let docStringRange = new vscode.Range(docStringPos, docStringPos);
+														let index = parseInt(docIndex.slice(10)) - 1;
+														editor?.insertSnippet(new vscode.SnippetString(docstrings[index] + '\n'), docStringRange);
+													}
+													else {
+														if(editor?.viewColumn != null) {
+															vscode.window.showTextDocument(secondEditor.document, editor.viewColumn.valueOf() + 1)
+															.then(editor => {
+																
+															});
+
+															// Not signed in!
+															vscode.window.showErrorMessage("Docstring generation cancelled!");
+														}
+													}
+												});
+											});
+										}
+									});
+								}
+								else {
+									// Not signed in, or something went wrong on our end!
+									vscode.window.showErrorMessage("Authentication failed. Double check that you copied in your API Key correctly.");
+								}
+							});
+						}
+						else {
+
+							// Unsupported language
+							vscode.window.showErrorMessage("Generation failed. We do not support the language you tried to generate documentation for.");
+						}
 					}
 					else {
 						// No snippet selected!
