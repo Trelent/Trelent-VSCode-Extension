@@ -149,9 +149,10 @@ export function activate(context: vscode.ExtensionContext) {
 										}
 										else {
 
-											// Default back to Python
+											// Default to Python - this code should never actually be hit due to previous checks against languageid
 											resultantString += `# ${docIndexList[i]}:\n\n` + docstring + `\n\n`;
 										}
+
 										i++;
 									}
 
