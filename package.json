@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent",
   "description": "We write documentation for you!",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "engines": {
