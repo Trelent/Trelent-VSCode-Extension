@@ -12,12 +12,13 @@ export const requestDocstrings = async(funcs: any, user: string): Promise<any>  
 
     // Get a docstring for each function
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    await Promise.all(funcs.map(async(func: { text: string; params: [string]; docstring_point: [number]; }) => {
+    await Promise.all(funcs.map(async(func: { docstring_point: [number]; name: string; params: [string]; text: string;   }) => {
         // Setup our request body
         let reqBody = {
             'language': 'python',
             'sender': 'ext-vscode',
             'snippet': func.text,
+            'name': func.name,
             'params': func.params,
             'user': user,
         };
