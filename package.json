@@ -26,8 +26,8 @@
     "keybindings": [
       {
         "command": "trelent.writeDocstrings",
-        "key": "ctrl+shift+2",
-        "mac": "cmd+shift+2",
+        "key": "alt+d",
+        "mac": "opt+d",
         "when": "editorHasSelection"
       }
     ],
