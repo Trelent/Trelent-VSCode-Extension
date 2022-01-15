@@ -4,7 +4,7 @@ Documentation sucks. Let us take care of it.
 
 Trelent uses AI to write docstrings for your python functions instantly.
 
-<img src="/trelent-demo.gif" width="520px" />
+<img src="/images/trelent-demo.gif" width="520px" />
 
 ### Command Reference
 `Trelent: Write Docstring(s)`: Write docstrings for each function within your selection.
