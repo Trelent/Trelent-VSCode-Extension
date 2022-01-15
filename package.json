@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent - Docstrings on Demand",
   "description": "We write docstrings for your python code!",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "engines": {
