@@ -1,6 +1,6 @@
-# Trelent - VS Code Extension
+# Trelent - Docstrings on Demand
 
-Documentation sucks. Let us take care of it.
+Documentation sucks. Let us take care of it!
 
 Trelent uses AI to write docstrings for your python functions instantly.
 
@@ -13,6 +13,6 @@ Trelent uses AI to write docstrings for your python functions instantly.
 `Trelent: Write Docstring(s)` is bound to `Ctrl + Shift + 2` or `Cmd + Shift + 2` on Mac.
 
 ### Supported Languages
-Trelent currently supports Python and Javascript docstrings.
+Trelent currently supports Python docstrings. JavaScript TypeScript, Java and C# are on our roadmap.
 
 *We cannot guaruntee any accuracy with unsupported languages should you find a way around our language validation checks.*

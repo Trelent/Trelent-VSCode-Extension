@@ -1,8 +1,8 @@
 {
   "publisher": "Trelent",
   "name": "trelent",
-  "displayName": "Trelent",
-  "description": "We write documentation for you!",
+  "displayName": "Trelent - Docstrings on Demand",
+  "description": "We write docstrings for your python code!",
   "version": "1.0.1",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
@@ -13,14 +13,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onCommand:trelent.writeDocstrings"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "trelent.writeDocstrings",
-        "title": "Trelent: Write Docstring(s)"
+        "title": "Write Docstring(s) - Trelent"
       }
     ],
     "keybindings": [
