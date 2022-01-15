@@ -2,7 +2,7 @@
   "publisher": "Trelent",
   "name": "trelent",
   "displayName": "Trelent",
-  "description": "Generates documentation at the press of a hotkey!",
+  "description": "We write documentation for you!",
   "version": "0.5.1",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "trelent-icon.png",
@@ -19,21 +19,24 @@
   "contributes": {
     "commands": [
       {
-        "command": "trelent.signIn",
-        "title": "Trelent: Sign In"
-      },
-      {
-        "command": "trelent.generateDocstring",
-        "title": "Trelent: Generate Docstring(s)"
+        "command": "trelent.writeDocstrings",
+        "title": "Trelent: Write Docstring(s)"
       }
     ],
     "keybindings": [
       {
-        "command": "trelent.generateDocstring",
+        "command": "trelent.writeDocstrings",
         "key": "ctrl+shift+2",
-        "mac": "cmd+shift+2"
+        "mac": "cmd+shift+2",
+        "when": "editorHasSelection"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [{
+          "when": "editorHasSelection",
+          "command": "trelent.writeDocstrings"
+    }]
+  }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -59,6 +62,7 @@
     "vscode-test": "^1.5.2"
   },
   "dependencies": {
+    "@types/axios": "^0.14.0",
     "axios": "^0.22.0",
     "tree-sitter-java": "^0.19.1",
     "tree-sitter-javascript": "^0.19.0",
