@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent",
   "description": "We write documentation for you!",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "engines": {
@@ -32,11 +32,13 @@
       }
     ],
     "menus": {
-      "editor/context": [{
+      "editor/context": [
+        {
           "when": "editorHasSelection",
           "command": "trelent.writeDocstrings"
-    }]
-  }
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
