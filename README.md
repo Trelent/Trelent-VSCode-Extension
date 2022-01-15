@@ -1,8 +1,8 @@
 # Trelent - Docstrings on Demand
 
-Documentation sucks. Let us take care of it!
+Documentation sucks. Let us take care of it! Just highlight your python function(s) and press `Alt (⌥) + d`.
 
-Trelent uses AI to write docstrings for your python functions instantly - just highlight your code and press `Alt (⌥) + d`.
+Trelent uses AI to write docstrings for your python functions instantly.
 
 ![Trelent writing an example docstring](images/trelent-example.gif)
 
