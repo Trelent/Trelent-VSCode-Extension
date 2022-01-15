@@ -1,7 +1,7 @@
 {
   "publisher": "Trelent",
   "name": "trelent",
-  "displayName": "Trelent - Docstrings on Demand",
+  "displayName": "Trelent - Python Docstrings on Demand",
   "description": "We write docstrings for your python code!",
   "version": "1.0.4",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
@@ -10,6 +10,9 @@
     "vscode": "^1.60.0"
   },
   "categories": [
+    "Data Science",
+    "Education",
+    "Machine Learning",
     "Other"
   ],
   "activationEvents": [
