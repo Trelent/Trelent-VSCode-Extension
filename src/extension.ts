@@ -1,7 +1,6 @@
 /* eslint-disable eqeqeq */
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { parse } from 'path';
 import * as vscode from 'vscode';
 
 import { requestDocstrings, parsePythonSnippet } from './api/api';
