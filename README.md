@@ -21,4 +21,4 @@ Trelent currently supports Python docstrings. JavaScript TypeScript, Java and C#
 *We cannot guaruntee accuracy with docstrings we generate. Please review docstrings manually to check for errors.*
 
 ### Seals of Approval
-"This thing is crazy!" - Wyatt, Student
+"This thing is crazy! For anyone programming in Python I would recommend giving it a look." - Wyatt, Student
