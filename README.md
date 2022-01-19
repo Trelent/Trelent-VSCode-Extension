@@ -19,3 +19,6 @@ Trelent uses AI to write docstrings for your python functions instantly.
 Trelent currently supports Python docstrings. JavaScript TypeScript, Java and C# are on our roadmap.
 
 *We cannot guaruntee accuracy with docstrings we generate. Please review docstrings manually to check for errors.*
+
+### Seals of Approval
+"This thing is crazy!" - Wyatt, Student

@@ -6,6 +6,7 @@
   "version": "1.0.6",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
+  "license": "We use the “Commons Clause” License Condition v1.0 with the MIT License.",
   "engines": {
     "vscode": "^1.60.0"
   },
