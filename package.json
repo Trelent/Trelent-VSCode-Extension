@@ -7,7 +7,7 @@
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
-    "color": "#27656e",
+    "color": "#333333",
     "theme": "dark"
   },
   "license": "We use the “Commons Clause” License Condition v1.0 with the MIT License.",
