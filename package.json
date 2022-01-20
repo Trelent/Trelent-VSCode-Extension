@@ -3,13 +3,13 @@
   "name": "trelent",
   "displayName": "Trelent - Python Docstrings on Demand",
   "description": "We write docstrings for your python code!",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
-		"color": "#27656e",
-		"theme": "dark"
-	},
+    "color": "#27656e",
+    "theme": "dark"
+  },
   "license": "We use the “Commons Clause” License Condition v1.0 with the MIT License.",
   "engines": {
     "vscode": "^1.60.0"
