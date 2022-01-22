@@ -3,7 +3,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-import { requestDocstrings, parsePythonSnippet } from './api/api';
+import { requestDocstrings, parseSnippet } from './api/api';
 import { compareDocstringPoints } from './util';
 
 
@@ -36,39 +36,69 @@ export function activate(context: vscode.ExtensionContext) {
 							// Let's try parsing the inputted snippet
 							let languageId = editor.document.languageId;
 
-							if(languageId == "python") {
+							// JavaScript support is here :D
+							if(languageId == "python" || languageId == "javascript") {
 
 								// Parse the selection for functions to document
-								parsePythonSnippet(snippet)
+								parseSnippet(snippet, languageId)
 								.then((response) => {
 									let result = response.data;
 
 									if(result.success == true) {
-										requestDocstrings(result.functions, vscode.env.machineId)
+										requestDocstrings(result.functions, vscode.env.machineId, languageId)
 										.then((result) => {
 											if(result != null) {
 
-												// Insert all our new docstrings
-												let insertedLines = 0;
+												if(result.length > 0) {
+													// Insert all our new docstrings
+													let insertedLines = 0;
 
-												// First, sort our docstrings by first insertion so that when we account
-												// for newly-inserted lines, we aren't mismatching docstring locations
-												result.sort(compareDocstringPoints);
+													// First, sort our docstrings by first insertion so that when we account
+													// for newly-inserted lines, we aren't mismatching docstring locations
+													result.sort(compareDocstringPoints);
 
-												result.forEach((docstring:any) => {
-													let docPoint = docstring["point"];
-													let docStr = docstring["docstring"];
+													result.forEach((docstring:any) => {
+														let docPoint = docstring["point"];
+														let docStr = docstring["docstring"];
 
-													const insertPosition = new vscode.Position(docPoint[0] + selection.start.line + insertedLines, docPoint[1]);
+														console.log(docPoint[0]);
+														if(docPoint[0] < 0) { 
+															docPoint[0] = 0;
+														}
 
-													const snippet = new vscode.SnippetString(`${docStr}\n`);
-													editor?.insertSnippet(snippet, insertPosition);
 
-													const docStrLength = (docStr.match(/\n/g)||[]).length + 1;
-													insertedLines += docStrLength;
-												});
+														// If we are in JS, we have to account for a situation where
+														// the line on which the docstring is being inserted is not empty
+														// and thus we need to add an extra row to our insert position.
+														if(languageId == "javascript") {
 
-												return resolve('Success');
+															const insertLine = editor?.document.lineAt(docPoint[0]).text;
+															let isEmpty = false;
+															
+															if(insertLine != undefined) {
+																isEmpty = !/\S/.test(insertLine);
+															}
+															
+															if(!isEmpty) { 
+																docPoint[0]++;
+															}
+														}
+
+														const snippet = new vscode.SnippetString(`${docStr}\n`);
+														const insertPosition = new vscode.Position(docPoint[0] + selection.start.line + insertedLines, docPoint[1]);
+														editor?.insertSnippet(snippet, insertPosition);
+
+														const docStrLength = (docStr.match(/\n/g)||[]).length + 1;
+														insertedLines += docStrLength;
+													});
+
+													return resolve('Success');
+												}
+												else {
+													// Doc writing failed server-side in a graceful way
+													vscode.window.showErrorMessage("We could not find any functions in the selected snippet.");
+													return resolve('Failure');
+												}
 											}
 											else {
 												// Doc writing failed server-side in a graceful way
@@ -77,7 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
 											}
 										})
 										.catch((error) => {
-											// Doc writing failed server-side with a 500 error
+											// Doc writing failed server-side with a 500 error. Very weird!
 											console.error(error);
 											vscode.window.showErrorMessage("Doc writing failed. Please try again later.");
 											return resolve('Failure');
@@ -118,9 +148,7 @@ export function activate(context: vscode.ExtensionContext) {
 					// Something else went wrong
 					return resolve('Failure');
 				}
-			});
-
-			
+			});			
 
 			const timeout = new Promise((resolve, reject) => {
 				setTimeout(() => {resolve('Timeout');}, 30000);
@@ -129,6 +157,9 @@ export function activate(context: vscode.ExtensionContext) {
 			const winner = await Promise.race([writeDocstrings, timeout]);
 			if (winner === 'Timeout') {
 				vscode.window.showErrorMessage('Trelent timed out... please try again later.');
+			}
+			else if(winner === 'Failure') { 
+				vscode.window.showErrorMessage('Something went wrong.');
 			}
 		});
 	});
