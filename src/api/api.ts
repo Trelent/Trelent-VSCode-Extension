@@ -4,7 +4,7 @@ const axios = require('axios').default;
 
 // Internal imports
 import './conf';
-import { GENERATE_PYTHON_DOCSTRING_URL, GENERATE_JAVASCRIPT_DOCSTRING_URL, PARSE_FUNCTIONS_URL } from './conf';
+import { WRITE_DOCSTRING_URL, PARSE_FUNCTIONS_URL, PARSE_CURRENT_FUNCTION_URL } from './conf';
 
 export const requestDocstrings = async(funcs: any, user: string, language: string): Promise<any>  => {
 
@@ -23,109 +23,51 @@ export const requestDocstrings = async(funcs: any, user: string, language: strin
             'user': user,
         };
 
-        // Hey Han & Hahnbee! Funny seeing you here - hope Mintlify is doing well! We should re-connect sometime.
-
         // Send the request based on the language
-        if(language === "python") {
-            // Python
-            await axios({
-                method: 'POST',
-                url: GENERATE_PYTHON_DOCSTRING_URL,
-                data: JSON.stringify(reqBody),
-                headers: {
-                    //'X-Trelent-API-Key': key,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then((response: any) => {
-                let result = response.data;
-    
-                if(result.docstring !== null) {
-    
-                    // Quickly setup our docstring editor
-                    let docstring = result.docstring;
-                    functionDocstrings.push({"docstring": docstring, "point": func.docstring_point});
-                }
-            })
-            .catch((error : any) => {
-                console.error(error);
-            });
-        }
-        else if(language === "javascript") {
-            // JS
-            await axios({
-                method: 'POST',
-                url: GENERATE_JAVASCRIPT_DOCSTRING_URL,
-                data: JSON.stringify(reqBody),
-                headers: {
-                    //'X-Trelent-API-Key': key,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then((response: any) => {
-                let result = response.data;
-    
-                if(result.docstring !== null) {
-    
-                    // Quickly setup our docstring editor
-                    let docstring = result.docstring;
-                    functionDocstrings.push({"docstring": docstring, "point": func.docstring_point});
-                }
-            })
-            .catch((error : any) => {
-                console.error(error);
-            });
-        }
-        else {
-            // Default to Python
-            await axios({
-                method: 'POST',
-                url: GENERATE_PYTHON_DOCSTRING_URL,
-                data: JSON.stringify(reqBody),
-                headers: {
-                    //'X-Trelent-API-Key': key,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then((response: any) => {
-                let result = response.data;
-    
-                if(result.docstring !== null) {
-    
-                    // Quickly setup our docstring editor
-                    let docstring = result.docstring;
-                    functionDocstrings.push({"docstring": docstring, "point": func.docstring_point});
-                }
-            })
-            .catch((error : any) => {
-                console.error(error);
-            });
-        }
+        await axios({
+            method: 'POST',
+            url: WRITE_DOCSTRING_URL,
+            data: JSON.stringify(reqBody),
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json'
+            }
+        })
+        .then((response: any) => {
+            let result = response.data;
+
+            if(result.docstring !== null) {
+
+                // Quickly setup our docstring editor
+                let docstring = result.docstring;
+                functionDocstrings.push({"docstring": docstring, "point": func.docstring_point});
+            }
+        })
+        .catch((error : any) => {
+            console.error(error);
+        });
     }));
 
     return functionDocstrings;
 };
 
-export const parseSnippet = async(snippet: string, language: string): Promise<any> => {
+export const parseCurrentFunction = (document: string, language: string, cursor: number[]) : Promise<any> => {
 
     // Setup our request body
     let reqBody = {
-        'source': snippet,
-        'language': language
+        'cursor': cursor,
+        'language': language,
+        'source': document
     };
 
     // Send the request
     return axios({
 		method: 'POST',
-		url: PARSE_FUNCTIONS_URL,
+		url: PARSE_CURRENT_FUNCTION_URL,
 		data: JSON.stringify(reqBody),
 		headers: {
-			//'X-Trelent-API-Key': key,
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'Content-Type': 'application/json'
 		}
 	});
-};
+}

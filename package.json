@@ -1,9 +1,9 @@
 {
   "publisher": "Trelent",
   "name": "trelent",
-  "displayName": "Trelent - Python, JavaScript, TypeScript Docstrings on Demand",
-  "description": "We write docstrings for your code!",
-  "version": "1.2.0",
+  "displayName": "Trelent - AI Docstrings on Demand",
+  "description": "We write docstrings for your code automatically!",
+  "version": "1.3.0",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
@@ -15,35 +15,44 @@
     "vscode": "^1.60.0"
   },
   "categories": [
-    "Data Science",
     "Education",
     "Machine Learning",
-    "Other"
+    "Other",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "docstring",
+    "documentation",
+    "docs",
+    "productivity",
+    "javadoc",
+    "jsdoc",
+    "docblock"
   ],
   "activationEvents": [
-    "onCommand:trelent.writeDocstrings"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "trelent.writeDocstrings",
-        "title": "Write Docstring(s) - Trelent"
+        "command": "trelent.writeDocstring",
+        "title": "Write Docstring | Trelent"
       }
     ],
     "keybindings": [
       {
-        "command": "trelent.writeDocstrings",
+        "command": "trelent.writeDocstring",
         "key": "alt+d",
-        "mac": "opt+d",
-        "when": "editorHasSelection"
+        "mac": "option+d",
+        "when": "editorTextFocus"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "when": "editorHasSelection",
-          "command": "trelent.writeDocstrings"
+          "when": "editorTextFocus",
+          "command": "trelent.writeDocstring"
         }
       ]
     }
