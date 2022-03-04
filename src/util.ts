@@ -84,7 +84,7 @@ export async function showSignupPopup(context: vscode.ExtensionContext) {
   if (previousVersion === undefined || isMinorUpdate(previousVersion, currentVersion)) {
 
     // Version has changed, show our popup
-    const actions = [{ title: "Sign Up for Extra Features!" }];
+    const actions = [{ title: "Check out our launch!" }];
 
     const result = await vscode.window.showInformationMessage(
       `Trelent v${currentVersion} — We're live on ProductHunt!`,
