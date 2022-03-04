@@ -87,14 +87,14 @@ export async function showSignupPopup(context: vscode.ExtensionContext) {
     const actions = [{ title: "Sign Up for Extra Features!" }];
 
     const result = await vscode.window.showInformationMessage(
-      `Trelent v${currentVersion} — C# and Java support + ease of use improvements!`,
+      `Trelent v${currentVersion} — We're live on ProductHunt!`,
       ...actions
     );
 
     if (result !== null) {
       if (result === actions[0]) {
         await vscode.env.openExternal(
-          vscode.Uri.parse("https://docgen.trelent.net")
+          vscode.Uri.parse("https://www.producthunt.com/posts/trelent-ai-docstrings-on-demand")
         );
       }
     }

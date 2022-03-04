@@ -4,4 +4,4 @@ export const PARSE_FUNCTIONS_URL        = 'https://lambda.trelent.net/api/v4/Par
 export const WRITE_DOCSTRING_URL        = 'https://trelent.npkn.net/write-docstring';
 
 
-export const SUPPORTED_LANGUAGES = ["csharp", "java", "javascript", "python"]
+export const SUPPORTED_LANGUAGES = ["csharp", "java", "javascript", "python"];
