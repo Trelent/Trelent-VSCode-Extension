@@ -1,5 +1,5 @@
+import { submitChoice } from './api/api';
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 
 export function compareDocstringPoints( docStrA: { point: number[]; }, docStrB: { point: number[]; } ) {
     if ( docStrA.point[0] < docStrB.point[0] ){
@@ -66,14 +66,14 @@ function isMinorUpdate(previousVersion: string, currentVersion: string) {
   var currentVerArr = currentVersion.split(".").map(Number);
 
   // Check major and minor versions
-  if (currentVerArr[0] > previousVerArr[0] || currentVerArr[1] > previousVerArr[1] ) {
+  if (currentVerArr[0] > previousVerArr[0] || currentVerArr[1] > previousVerArr[1] || currentVerArr[2] > previousVerArr[2] ) {
     return true;
   } else {
     return false;
   }
 }
 
-export async function showSignupPopup(context: vscode.ExtensionContext) {
+export async function showPopup(context: vscode.ExtensionContext) {
   const previousVersion = context.globalState.get<string>("Trelent.trelent");
   const currentVersion = vscode.extensions.getExtension("Trelent.trelent")!.packageJSON
     .version;
@@ -83,20 +83,52 @@ export async function showSignupPopup(context: vscode.ExtensionContext) {
 
   if (previousVersion === undefined || isMinorUpdate(previousVersion, currentVersion)) {
 
+    const result = await vscode.window.showInformationMessage(
+      `Trelent v${currentVersion} — Doc Formats, Increased Usage Limits and More!`,
+      ...[
+        {
+          title: "Learn More"
+        }
+      ]
+    );
+
+    if(result?.title === "Learn More") {
+      vscode.commands.executeCommand("vscode.open", vscode.Uri.parse("https://trelent.notion.site/Version-1-6-0-0ece599610494c8a9df73600b41804ac"));
+    }
+
+    // In-VS Code survey (probably not a great idea)
     // Version has changed, show our popup
-    const actions = [{ title: "Check out our launch!" }];
+    /*
+    const actions = [{title: "VSC Marketplace"}, {title: "Reddit"}, {title: "GitHub"}, {title: "Friend/Colleague"}, {title: "Other"}];
+    const user = vscode.env.machineId;
 
     const result = await vscode.window.showInformationMessage(
-      `Trelent v${currentVersion} — We're live on ProductHunt!`,
+      `Trelent v${currentVersion} — How did you find us?`,
       ...actions
     );
 
     if (result !== null) {
       if (result === actions[0]) {
-        await vscode.env.openExternal(
-          vscode.Uri.parse("https://www.producthunt.com/posts/trelent-ai-docstrings-on-demand")
-        );
+        // Found on VSC Marketplace
+        submitChoice("vscmarketplace", user);
+      }
+      else if(result === actions[1]) {
+        // Found on Reddit
+        submitChoice("reddit", user);
+      }
+      else if(result === actions[2]) {
+        // Found on GitHub
+        submitChoice("github", user);
+      }
+      else if(result === actions[3]) {
+        // Found by a friend/colleague
+        submitChoice("referral", user);
+      }
+      else if(result === actions[4]) {
+        // Other
+        submitChoice("other", user);
       }
     }
+    */
   }
 }

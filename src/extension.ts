@@ -5,24 +5,47 @@ import * as vscode from 'vscode';
 
 import { requestDocstrings, parseCurrentFunction } from './api/api';
 import { SUPPORTED_LANGUAGES } from './api/conf';
-import { insertDocstrings, showSignupPopup } from './util';
-
+import { authenticate, logout } from './helpers/authenticate';
+import { insertDocstrings, showPopup } from './util';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
 	// Invite the user to sign up every time our extension has a minor or major update
-	showSignupPopup(context);
+	showPopup(context);
+	let loginCmd = vscode.commands.registerCommand('trelent.login', () => {
+		try {
+			authenticate(context, 'login');
+		} catch (err) {
+			console.log(err);
+		}
+	});
+
+	let logoutCmd = vscode.commands.registerCommand('trelent.logout', () => {
+		try {
+			logout(context);
+		} catch (err) {
+			console.log(err);
+		}
+	});
+
+	let signupCmd = vscode.commands.registerCommand('trelent.signup', () => {
+		try {
+			authenticate(context, 'signup');
+		} catch (err) {
+			console.log(err);
+		}
+	});
 
 	// Generate a docstring for the selected code
-	let writeDocstring = vscode.commands.registerCommand('trelent.writeDocstring', () => {
+	let writeDocstringCmd = vscode.commands.registerCommand('trelent.writeDocstring', () => {
 
 		// Initialize a progress bar
 		vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
 			title: 'Writing docstring...',
-		  }, async () => {
+		}, async () => {
 
 			const writeDocstring = new Promise(async (resolve, reject) => {
 				try {
@@ -52,36 +75,64 @@ export function activate(context: vscode.ExtensionContext) {
 						let result = response.data;
 
 						if(result == null || result.sucess == false) {
-							vscode.window.showErrorMessage("Cursor was not within scope of any functions in this file.")
+							vscode.window.showErrorMessage("Cursor was not within scope of any functions in this file.");
 							return resolve('Failure');
 						}
 
 						if(result.current_function == null) {
-							vscode.window.showErrorMessage("We couldn't find your cursor in that function. Try highlighting your function instead, or move your cursor a bit.")
+							vscode.window.showErrorMessage("We couldn't find your cursor in that function. Try highlighting your function instead, or move your cursor a bit.");
 							return resolve('Failure');
 						}
 						
-						let current_function = result.current_function;
-						requestDocstrings([current_function], vscode.env.machineId, languageId)
+						let currentFunction = result.current_function;
+						let format = vscode.workspace.getConfiguration('trelent').get(`docs.format.${languageId}`) || "rest";
+						
+						if(typeof format != "string") {
+							vscode.window.showErrorMessage("We couldn't find a doc format for that language.");
+							return resolve('Failure');
+						}
+
+						requestDocstrings(context, format.toLowerCase(), [currentFunction], vscode.env.machineId, languageId)
 						.then((result) => {
-							if(result == null)
-							{
+							if(result == null) {
 								vscode.window.showErrorMessage("Doc writing failed. Please try again later.");
 								return resolve('Failure');
 							}
 
-							if(result.length == 0)
-							{
-								vscode.window.showErrorMessage("Something went wrong on our end. Sorry about that! Please try again in a few seconds.");
+							if(result[0].successful === false) {
+								let errorMsg = result[0].error;
+
+								// Check if error_msg contains a specific error message
+								if(errorMsg.includes("usage limit")) {
+									let actions = [
+										{ title: "Sign Up", command: "trelent.signup" },
+										{ title: "Login", command: "trelent.login" },
+										// { title: "Upgrade", command: "trelent.upgrade" }
+									];
+									vscode.window.showErrorMessage(errorMsg, ...actions).then(selection => {
+										if(selection != undefined) {
+											vscode.commands.executeCommand(selection.command);
+										}
+									});
+								}
+								else {
+									vscode.window.showErrorMessage(errorMsg);
+								}
+
 								return resolve('Failure');
 							}
 
 							if(editor == undefined) {
-								vscode.window.showErrorMessage("Looks like you closed your editor! Please try again, and keep the editor open until the docstrings are written.");
+								vscode.window.showErrorMessage("It looks like you closed your editor! Please try again, and keep the editor open until the docstrings are written.");
 								return resolve('Failure');
 							}
 
-							insertDocstrings(result, editor, languageId);
+							let composedDocstring = {
+								"docstring": result[0].data.docstring,
+								"point": currentFunction.docstring_point
+							};
+							
+							insertDocstrings([composedDocstring], editor, languageId);
 
 							return resolve('Success');
 						})
@@ -95,7 +146,7 @@ export function activate(context: vscode.ExtensionContext) {
 					.catch((error) => {
 						// Parsing failed server-side
 						console.error(error);
-						vscode.window.showErrorMessage("Failed to parse your selection! Is this valid Python code?");
+						vscode.window.showErrorMessage("Failed to parse your selection! Does this code contain a function or method?");
 						return resolve('Failure');
 					});
 
@@ -113,11 +164,14 @@ export function activate(context: vscode.ExtensionContext) {
 			if (winner === 'Timeout') {
 				vscode.window.showErrorMessage('Trelent timed out. Please try again in a few seconds.');
 			}
-		});
+		});		
 	});
 
 	// Dispose of our command registrations
-	context.subscriptions.push(writeDocstring);
+	context.subscriptions.push(loginCmd);
+	context.subscriptions.push(logoutCmd);
+	context.subscriptions.push(signupCmd);
+	context.subscriptions.push(writeDocstringCmd);
 }
 
 // this method is called when your extension is deactivated
