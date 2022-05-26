@@ -3,7 +3,6 @@ import * as vscode from "vscode";
 // Prod
 export const PARSE_CURRENT_FUNCTION_URL = 'https://lambda.trelent.net/api/v4/ParseCurrent/ParseCurrentFunction';
 export const PARSE_FUNCTIONS_URL        = 'https://lambda.trelent.net/api/v4/ParseAll/ParseSourceCode';
-export const SUBMIT_CHOICE_URL          = 'https://trelent.npkn.net/submit-source';
 export const SUPPORTED_LANGUAGES        = ["csharp", "java", "javascript", "python"];
 const CHECKOUT_REDIRECT                 = `${vscode.env.uriScheme}://trelent.trelent/checkout`;
 const PORTAL_REDIRECT                   = `${vscode.env.uriScheme}://trelent.trelent/portal`;

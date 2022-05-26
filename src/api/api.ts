@@ -6,31 +6,7 @@ import * as vscode from 'vscode';
 // Internal imports
 import './conf';
 import { TokenManager } from '../helpers/token';
-import { GET_CHECKOUT_URL, GET_PORTAL_URL, GET_USER_URL, WRITE_DOCSTRING_URL, PARSE_FUNCTIONS_URL, PARSE_CURRENT_FUNCTION_URL, SUBMIT_CHOICE_URL, CHECKOUT_RETURN_URL, PORTAL_RETURN_URL } from './conf';
-
-export const submitChoice = async(choice: string, user: string) => {
-    // Setup our request body
-    let reqBody = {
-        'choice': choice,
-        'user': user,
-    };
-
-    // Send the request based on the language
-    await axios({
-        method: 'POST',
-        url: SUBMIT_CHOICE_URL,
-        data: JSON.stringify(reqBody),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then((response: any) => {
-        let result = response.data;
-    })
-    .catch((error : any) => {
-        console.error(error);
-    });
-};
+import { GET_CHECKOUT_URL, GET_PORTAL_URL, GET_USER_URL, WRITE_DOCSTRING_URL, PARSE_FUNCTIONS_URL, PARSE_CURRENT_FUNCTION_URL, CHECKOUT_RETURN_URL, PORTAL_RETURN_URL } from './conf';
 
 export const getCheckoutUrl = async(token: string) : Promise<any> => {
     let result = await axios({
