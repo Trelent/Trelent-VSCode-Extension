@@ -46,6 +46,14 @@
         "title": "Trelent | Logout"
       },
       {
+        "command": "trelent.portal",
+        "title": "Trelent | Billing Portal"
+      },
+      {
+        "command": "trelent.upgrade",
+        "title": "Trelent | Upgrade Account"
+      },
+      {
         "command": "trelent.signup",
         "title": "Trelent | Sign Up"
       },

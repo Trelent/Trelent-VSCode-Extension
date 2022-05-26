@@ -3,11 +3,10 @@
 const axios = require('axios').default;
 import * as vscode from 'vscode';
 
-
-import { TokenManager } from '../helpers/token';
 // Internal imports
 import './conf';
-import { GET_USER_URL, WRITE_DOCSTRING_URL, PARSE_FUNCTIONS_URL, PARSE_CURRENT_FUNCTION_URL, SUBMIT_CHOICE_URL } from './conf';
+import { TokenManager } from '../helpers/token';
+import { GET_CHECKOUT_URL, GET_PORTAL_URL, GET_USER_URL, WRITE_DOCSTRING_URL, PARSE_FUNCTIONS_URL, PARSE_CURRENT_FUNCTION_URL, SUBMIT_CHOICE_URL, CHECKOUT_RETURN_URL, PORTAL_RETURN_URL } from './conf';
 
 export const submitChoice = async(choice: string, user: string) => {
     // Setup our request body
@@ -31,6 +30,30 @@ export const submitChoice = async(choice: string, user: string) => {
     .catch((error : any) => {
         console.error(error);
     });
+};
+
+export const getCheckoutUrl = async(token: string) : Promise<any> => {
+    let result = await axios({
+        method: 'GET',
+        url: `${GET_CHECKOUT_URL}&return_url=${CHECKOUT_RETURN_URL}`,
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    return result.data;
+};
+
+export const getPortalUrl = async(token: string) : Promise<any> => {
+    let result = await axios({
+        method: 'GET',
+        url: `${GET_PORTAL_URL}?return_url=${PORTAL_RETURN_URL}`,
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    return result.data;
 };
 
 export const getUser = async(token: string) : Promise<any> => {
@@ -61,6 +84,7 @@ export const requestDocstrings = async(context: vscode.ExtensionContext, format:
 
     // Get a docstring for each function
     await Promise.all(funcs.map(async(func: { docstring_point: [number]; name: string; params: [string]; text: string;   }) => {
+        
         // Setup our request body
         let reqBody = {
             'format': format,
