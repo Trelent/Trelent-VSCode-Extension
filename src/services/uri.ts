@@ -37,7 +37,7 @@ export class URIService {
                         case 'cancel':
                             vscode.window.showInformationMessage("Your subscription has been cancelled. You will not be charged again. You will still get 100 free docs/month.");
                         default:
-                            vscode.window.showInformationMessage("Billing updated successfully!");
+                            vscode.window.showInformationMessage("Your billing information has been updated.");
                     }
                 }
                 else if(uri.path === '/portal') {

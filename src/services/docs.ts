@@ -117,7 +117,7 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
                         }
 
                         if(editor == undefined) {
-                            vscode.window.showErrorMessage("It looks like you closed your editor! Please try again, and keep the editor open until the docstrings are written.");
+                            vscode.window.showErrorMessage("It looks like you closed your editor! Please try again, and keep the editor open until the docstrings have been written.");
                             return resolve('Failure');
                         }
 
