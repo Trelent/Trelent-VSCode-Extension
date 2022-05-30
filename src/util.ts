@@ -83,7 +83,7 @@ export async function showPopup(context: vscode.ExtensionContext) {
   if (previousVersion === undefined || isMinorUpdate(previousVersion, currentVersion)) {
 
     const result = await vscode.window.showInformationMessage(
-      `Trelent v${currentVersion} — Doc Formats, Increased Usage Limits and More!`,
+      `Trelent v${currentVersion} — Upgradable accounts, faster docs, and a cleaner code base!`,
       ...[
         {
           title: "Learn More"
@@ -92,7 +92,7 @@ export async function showPopup(context: vscode.ExtensionContext) {
     );
 
     if(result?.title === "Learn More") {
-      vscode.commands.executeCommand("vscode.open", vscode.Uri.parse("https://trelent.notion.site/Version-1-6-0-0ece599610494c8a9df73600b41804ac"));
+      vscode.commands.executeCommand("vscode.open", vscode.Uri.parse("https://trelent.notion.site/Version-1-7-0-bd4a09b1af604ba48b00fc48c64fd82e"));
     }
   }
 }
