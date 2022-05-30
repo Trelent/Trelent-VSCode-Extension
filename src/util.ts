@@ -1,4 +1,3 @@
-import { submitChoice } from './api/api';
 import * as vscode from 'vscode';
 
 export function compareDocstringPoints( docStrA: { point: number[]; }, docStrB: { point: number[]; } ) {
@@ -95,40 +94,5 @@ export async function showPopup(context: vscode.ExtensionContext) {
     if(result?.title === "Learn More") {
       vscode.commands.executeCommand("vscode.open", vscode.Uri.parse("https://trelent.notion.site/Version-1-6-0-0ece599610494c8a9df73600b41804ac"));
     }
-
-    // In-VS Code survey (probably not a great idea)
-    // Version has changed, show our popup
-    /*
-    const actions = [{title: "VSC Marketplace"}, {title: "Reddit"}, {title: "GitHub"}, {title: "Friend/Colleague"}, {title: "Other"}];
-    const user = vscode.env.machineId;
-
-    const result = await vscode.window.showInformationMessage(
-      `Trelent v${currentVersion} — How did you find us?`,
-      ...actions
-    );
-
-    if (result !== null) {
-      if (result === actions[0]) {
-        // Found on VSC Marketplace
-        submitChoice("vscmarketplace", user);
-      }
-      else if(result === actions[1]) {
-        // Found on Reddit
-        submitChoice("reddit", user);
-      }
-      else if(result === actions[2]) {
-        // Found on GitHub
-        submitChoice("github", user);
-      }
-      else if(result === actions[3]) {
-        // Found by a friend/colleague
-        submitChoice("referral", user);
-      }
-      else if(result === actions[4]) {
-        // Other
-        submitChoice("other", user);
-      }
-    }
-    */
   }
 }

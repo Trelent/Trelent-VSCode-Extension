@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent - AI Docstrings on Demand",
   "description": "We write docstrings for your code automatically!",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
@@ -44,6 +44,14 @@
       {
         "command": "trelent.logout",
         "title": "Trelent | Logout"
+      },
+      {
+        "command": "trelent.portal",
+        "title": "Trelent | Billing Portal"
+      },
+      {
+        "command": "trelent.upgrade",
+        "title": "Trelent | Upgrade Account"
       },
       {
         "command": "trelent.signup",
