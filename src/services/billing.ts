@@ -1,8 +1,6 @@
-import { URLSearchParams } from 'url';
 import * as vscode from "vscode";
 import { getCheckoutUrl, getPortalUrl } from '../api/api';
 import { TokenManager } from "../helpers/token";
-import { openWebView } from "../helpers/webview";
 
 export class BillingService {
 
@@ -43,24 +41,31 @@ export class BillingService {
             vscode.window.showErrorMessage("You must be logged in to upgrade your plan.");
             return;
         }
-
-        let checkoutURL = await getCheckoutUrl(token);
-        if(checkoutURL.success = true) {
-            vscode.env.openExternal(vscode.Uri.parse(checkoutURL.session));
-        }
-        else {
-            let actions = [
-                { title: "Login", command: "trelent.login" },
-                { title: "Try Again", command: "trelent.upgrade" }
-            ];
-
-            vscode.window.showErrorMessage("Failed to upgrade your account. Try logging in again and retrying.", ...actions)
-            .then(async (action) => {
-                if(action) {
-                    vscode.commands.executeCommand(action!.command);
-                }
-            });
-        }
+        
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Loading checkout...',
+        }, async () => {
+            return await getCheckoutUrl(token);
+        })
+        .then((checkoutURL) => {
+            if(checkoutURL.success && checkoutURL.success === true) {
+                vscode.env.openExternal(vscode.Uri.parse(checkoutURL.session));
+            }
+            else {
+                let actions = [
+                    { title: "Login", command: "trelent.login" },
+                    { title: "Try Again", command: "trelent.upgrade" }
+                ];
+    
+                vscode.window.showErrorMessage("Failed to upgrade your account. Try logging in again and retrying.", ...actions)
+                .then(async (action) => {
+                    if(action) {
+                        vscode.commands.executeCommand(action!.command);
+                    }
+                });
+            }
+        });
     }
 
     public async portal(context: vscode.ExtensionContext): Promise<any> {
@@ -70,25 +75,29 @@ export class BillingService {
             return;
         }
 
-        let portalURL = await getPortalUrl(token);
-
-        console.log(portalURL);
-
-        if(portalURL.success = true) {
-            vscode.env.openExternal(vscode.Uri.parse(portalURL.session));
-        }
-        else {
-            let actions = [
-                { title: "Login", command: "trelent.login" },
-                { title: "Try Again", command: "trelent.portal" }
-            ];
-
-            vscode.window.showErrorMessage("Failed to access the billing portal. Try logging in again and retrying.", ...actions)
-            .then(async (action) => {
-                if(action) {
-                    vscode.commands.executeCommand(action!.command);
-                }
-            });
-        }
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Loading billing portal...',
+        }, async () => {
+            return await getPortalUrl(token);
+        })
+        .then((portalURL) => {
+            if(portalURL.success = true) {
+                vscode.env.openExternal(vscode.Uri.parse(portalURL.session));
+            }
+            else {
+                let actions = [
+                    { title: "Login", command: "trelent.login" },
+                    { title: "Try Again", command: "trelent.portal" }
+                ];
+    
+                vscode.window.showErrorMessage("Failed to access the billing portal. Try logging in again and retrying.", ...actions)
+                .then(async (action) => {
+                    if(action) {
+                        vscode.commands.executeCommand(action!.command);
+                    }
+                });
+            }
+        });
     }
 }

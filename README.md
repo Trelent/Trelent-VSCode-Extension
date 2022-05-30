@@ -22,8 +22,8 @@ If you have any other suggestions we would love to hear from you at [contact@tre
 `Trelent | Login`: Login to your Trelent account.
 `Trelent | Logout`: Logout from your Trelent account.
 `Trelent | Sign Up`: Sign Up for a Trelent account.
-`Trelent | Upgrade`: Upgrade to a paid Trelent account.
-`Trelent | Portal`: Go to the billing portal to manage your Trelent account.
+`Trelent | Upgrade Account`: Upgrade to a paid Trelent account.
+`Trelent | Billing Portal`: Go to the billing portal to manage your Trelent account.
 
 ### Keybind Reference
 `Write Docstring | Trelent` is bound to `Alt + D` (`⌥ + D` on Mac).
