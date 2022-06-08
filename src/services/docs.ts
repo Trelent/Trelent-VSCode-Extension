@@ -52,13 +52,12 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
                 .then((response) => {
                     let result = response.data;
 
-                    if(result == null || result.sucess == false) {
-                        vscode.window.showErrorMessage("Cursor was not within scope of any functions in this file.");
+                    if(result == null || result.success == false) {
+                        vscode.window.showErrorMessage("We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit.");
                         return resolve('Failure');
                     }
-
-                    if(result.current_function == null) {
-                        vscode.window.showErrorMessage("We couldn't find your cursor in that function. Try highlighting your function instead, or move your cursor a bit.");
+                    else if(result.current_function == null) {
+                        vscode.window.showErrorMessage("We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit.");
                         return resolve('Failure');
                     }
                     
@@ -73,7 +72,7 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
                     requestDocstrings(context, format.toLowerCase(), [currentFunction], vscode.env.machineId, languageId)
                     .then((result) => {
                         if(result == null) {
-                            vscode.window.showErrorMessage("Doc writing failed. Please try again later.");
+                            vscode.window.showErrorMessage("Whoa there! One docstring at a time, please.");
                             return resolve('Failure');
                         }
 

@@ -83,7 +83,7 @@ export async function showPopup(context: vscode.ExtensionContext) {
   if (previousVersion === undefined || isMinorUpdate(previousVersion, currentVersion)) {
 
     const result = await vscode.window.showInformationMessage(
-      `Trelent v${currentVersion} — Upgradable accounts, faster docs, and a cleaner code base!`,
+      `Trelent v${currentVersion} — MacOS keybind fixed! Now Cmd+D by default, instead of not being assigned.`,
       ...[
         {
           title: "Learn More"
