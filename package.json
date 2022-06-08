@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent - AI Docstrings on Demand",
   "description": "We write docstrings for your code automatically!",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
@@ -66,7 +66,7 @@
       {
         "command": "trelent.writeDocstring",
         "key": "alt+d",
-        "mac": "option+d",
+        "mac": "cmd+d",
         "when": "editorTextFocus"
       }
     ],
@@ -158,6 +158,7 @@
     "vscode-test": "^1.5.2"
   },
   "dependencies": {
+    "@vscode/extension-telemetry": "^0.5.2",
     "axios": "^0.22.0",
     "polka": "^0.5.2",
     "tree-sitter-java": "^0.19.1",
