@@ -2,10 +2,11 @@ import { URLSearchParams } from 'url';
 import * as vscode from "vscode";
 import { LOGIN_URL, LOGOUT_URL } from "../api/conf";
 import { TokenManager } from "../helpers/token";
+import { TelemetryService } from './telemetry';
 
 export class AuthenticationService {
 
-  public init(context: vscode.ExtensionContext): void {
+  public init(context: vscode.ExtensionContext, telemetry: TelemetryService): void {
 
     // Register our auth-reated commands
     let loginCmd = vscode.commands.registerCommand('trelent.login', () => {
@@ -28,6 +29,11 @@ export class AuthenticationService {
       try {
         this.authenticate('signup');
       } catch (err) {
+        // Something went wrong client-side
+        telemetry.trackError('Client Error', {
+            error: err,
+            time: new Date().toISOString()
+        });
         console.log(err);
       }
     });

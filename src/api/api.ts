@@ -52,7 +52,7 @@ export const getUser = async(token: string) : Promise<any> => {
     return user;
 };
 
-export const requestDocstrings = async(context: vscode.ExtensionContext, format: string, funcs: any, user: string, language: string): Promise<any>  => {
+export const requestDocstrings = async(context: vscode.ExtensionContext, format: string, funcs: any, user: string, language: string, modulesContext: string | null): Promise<any>  => {
 
     let dataArr: { success: boolean; error: string, data: any; }[] = [];
 
@@ -63,6 +63,7 @@ export const requestDocstrings = async(context: vscode.ExtensionContext, format:
         
         // Setup our request body
         let reqBody = {
+            'context': modulesContext,
             'format': format,
             'function': {
                 function_code: func.text,

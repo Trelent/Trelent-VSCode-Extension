@@ -1,15 +1,16 @@
 import * as vscode from "vscode";
 import { getCheckoutUrl, getPortalUrl } from '../api/api';
 import { TokenManager } from "../helpers/token";
+import { TelemetryService } from "./telemetry";
 
 export class BillingService {
 
-    public init(context: vscode.ExtensionContext): void {
+    public init(context: vscode.ExtensionContext, telemetry: TelemetryService): void {
     
         // Register our billing-related commands
         let portalCmd = vscode.commands.registerCommand('trelent.portal', () => {
             try {
-                this.portal(context);
+                this.portal(context, telemetry);
             } catch (err) {
                 console.log(err);
             }
@@ -17,7 +18,7 @@ export class BillingService {
 
         let upgradeCmd = vscode.commands.registerCommand('trelent.upgrade', () => {
             try {
-                this.upgrade(context);
+                this.upgrade(context, telemetry);
             } catch (err) {
                 console.log(err);
             }
@@ -35,7 +36,7 @@ export class BillingService {
     }
 
 
-    public async upgrade(context: vscode.ExtensionContext): Promise<any> {
+    public async upgrade(context: vscode.ExtensionContext, telemetry: TelemetryService): Promise<any> {
         let token = await TokenManager.getToken(context);
         if(!token) {
             vscode.window.showErrorMessage("You must be logged in to upgrade your plan.");
@@ -68,7 +69,7 @@ export class BillingService {
         });
     }
 
-    public async portal(context: vscode.ExtensionContext): Promise<any> {
+    public async portal(context: vscode.ExtensionContext, telemetry: TelemetryService): Promise<any> {
         let token = await TokenManager.getToken(context);
         if(!token) {
             vscode.window.showErrorMessage("You must be logged in to access the billing portal.");

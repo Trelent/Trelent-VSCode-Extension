@@ -96,3 +96,7 @@ export async function showPopup(context: vscode.ExtensionContext) {
     }
   }
 }
+
+export async function showPopupContent(context: vscode.ExtensionContext, message: string) {
+  await vscode.window.showInformationMessage(message);
+};
