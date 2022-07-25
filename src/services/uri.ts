@@ -1,10 +1,11 @@
 import { URLSearchParams } from 'url';
 import * as vscode from "vscode";
+import { TelemetryService } from '../services/telemetry';
 import { TokenManager } from "../helpers/token";
 
 export class URIService {
 
-    public init(context: vscode.ExtensionContext): void {
+    public init(context: vscode.ExtensionContext, telemetry: TelemetryService): void {
         var handler = vscode.window.registerUriHandler({
             async handleUri(uri: vscode.Uri) {
                 try {
@@ -46,6 +47,12 @@ export class URIService {
                     }
                 }
                 catch (error: any) {
+                    // Something went wrong client-side
+                    telemetry.trackError('Client Error', {
+                        error: error,
+                        time: new Date().toISOString()
+                    });
+                    
                     vscode.window.showErrorMessage("An error occurred while processing your request. Please try again.");
                 }
                 

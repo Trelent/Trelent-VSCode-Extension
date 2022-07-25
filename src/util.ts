@@ -72,7 +72,7 @@ function isMinorUpdate(previousVersion: string, currentVersion: string) {
   }
 }
 
-export async function showPopup(context: vscode.ExtensionContext) {
+export async function showVersionPopup(context: vscode.ExtensionContext) {
   const previousVersion = context.globalState.get<string>("Trelent.trelent");
   const currentVersion = vscode.extensions.getExtension("Trelent.trelent")!.packageJSON
     .version;
@@ -96,3 +96,7 @@ export async function showPopup(context: vscode.ExtensionContext) {
     }
   }
 }
+
+export async function showPopupContent(context: vscode.ExtensionContext, message: string) {
+  await vscode.window.showInformationMessage(message);
+};

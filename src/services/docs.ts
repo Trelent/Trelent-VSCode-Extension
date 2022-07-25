@@ -3,14 +3,16 @@ import * as vscode from 'vscode';
 
 import { requestDocstrings, parseCurrentFunction } from '../api/api';
 import { SUPPORTED_LANGUAGES } from '../api/conf';
+import { ModuleGatherer } from '../helpers/modules';
+import { TelemetryService } from '../services/telemetry';
 import { insertDocstrings } from '../util';
 
 export class DocsService {
     constructor(){}
 
-    public init(context: vscode.ExtensionContext) {
+    public init(context: vscode.ExtensionContext, telemetry: TelemetryService) {
         var writeDocstringCmd = vscode.commands.registerCommand('trelent.writeDocstring', () => {
-            writeDocstring(context);
+            writeDocstring(context, telemetry);
         });
 
         // Dispose of our command registration
@@ -18,7 +20,7 @@ export class DocsService {
     }
 }
 
-let writeDocstring = (context: vscode.ExtensionContext) => {
+let writeDocstring = (context: vscode.ExtensionContext, telemetry: TelemetryService) => {
     // Initialize a progress bar
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -48,8 +50,8 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
                 let documentContent = editor.document.getText();
 
                 // Call our API to parse out the currently selected function
-                parseCurrentFunction(documentContent, editor.document.languageId, [cursorPosition.line, cursorPosition.character])
-                .then((response) => {
+                parseCurrentFunction(documentContent, languageId, [cursorPosition.line, cursorPosition.character])
+                .then(async (response) => {
                     let result = response.data;
 
                     if(result == null || result.success == false) {
@@ -63,13 +65,14 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
                     
                     let currentFunction = result.current_function;
                     let format = vscode.workspace.getConfiguration('trelent').get(`docs.format.${languageId}`) || "rest";
+                    let modulesText = await ModuleGatherer.getModules(documentContent, languageId);
                     
                     if(typeof format != "string") {
                         vscode.window.showErrorMessage("We couldn't find a doc format for that language.");
                         return resolve('Failure');
                     }
 
-                    requestDocstrings(context, format.toLowerCase(), [currentFunction], vscode.env.machineId, languageId)
+                    requestDocstrings(context, format.toLowerCase(), [currentFunction], vscode.env.machineId, languageId, modulesText)
                     .then((result) => {
                         if(result == null) {
                             vscode.window.showErrorMessage("Whoa there! One docstring at a time, please.");
@@ -108,6 +111,9 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
                             else if(errorType == "exceeded_paid_quota") {
                                 vscode.window.showErrorMessage(errorMsg);
                             }
+                            else if(errorType == "exceeded_allowed_function_length") {
+                                vscode.window.showErrorMessage(errorMsg);
+                            }
                             else {
                                 vscode.window.showErrorMessage(errorMsg);
                             }
@@ -124,6 +130,17 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
                             "docstring": result[0].data.docstring,
                             "point": currentFunction.docstring_point
                         };
+
+                        let docsCount = context.globalState.get<number>('docs_count', 0);
+                        context.globalState.update('docs_count', docsCount + 1);
+
+                        if(docsCount == 5) {
+                            vscode.window.showInformationMessage("Looks like you're using Trelent quite a bit! Want to help shape the future of Trelent? Join our community!", "Join Discord").then(selection => {
+                                if(selection != undefined) {
+                                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://discord.gg/3gWUdP8EeC'));
+                                }
+                            });
+                        }
                         
                         insertDocstrings([composedDocstring], editor, languageId);
 
@@ -143,8 +160,13 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
                     return resolve('Failure');
                 });
 
-            } catch {
-                // Something else went wrong
+            } catch (error: any) {
+                // Something went wrong client-side
+                telemetry.trackError('Client Error', {
+                    error: error,
+                    time: new Date().toISOString()
+                });
+
                 return resolve('Failure');
             }
         });
@@ -155,7 +177,7 @@ let writeDocstring = (context: vscode.ExtensionContext) => {
 
         const winner = await Promise.race([writeDocstring, timeout]);
         if (winner === 'Timeout') {
-            vscode.window.showErrorMessage('Trelent is experiencing a high load at the moment. Please try again in a few seconds. If you continue to experience this issue, please contact us at contact@trelent.net');
+            vscode.window.showErrorMessage('Trelent is experiencing high load at the moment. Please try again in a few seconds. If you continue to experience this issue, please contact us at contact@trelent.net');
         }
     });		
 };
