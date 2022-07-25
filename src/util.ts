@@ -81,18 +81,17 @@ export async function showVersionPopup(context: vscode.ExtensionContext) {
   context.globalState.update("Trelent.trelent", currentVersion);
 
   if (previousVersion === undefined || isMinorUpdate(previousVersion, currentVersion)) {
-
     const result = await vscode.window.showInformationMessage(
-      `Trelent v${currentVersion} — MacOS keybind fixed! Now Cmd+D by default, instead of not being assigned.`,
+      `Trelent v${currentVersion} — Improved and quicker docstrings, and a new Discord community to help shape the future of Trelent!`,
       ...[
         {
-          title: "Learn More"
+          title: "Join Community"
         }
       ]
     );
-
-    if(result?.title === "Learn More") {
-      vscode.commands.executeCommand("vscode.open", vscode.Uri.parse("https://trelent.notion.site/Version-1-7-0-bd4a09b1af604ba48b00fc48c64fd82e"));
+    
+    if(result?.title === "Join Community") {
+      vscode.commands.executeCommand("vscode.open", vscode.Uri.parse("https://discord.gg/3gWUdP8EeC"));
     }
   }
 }
