@@ -111,6 +111,9 @@ let writeDocstring = (context: vscode.ExtensionContext, telemetry: TelemetryServ
                             else if(errorType == "exceeded_paid_quota") {
                                 vscode.window.showErrorMessage(errorMsg);
                             }
+                            else if(errorType == "exceeded_allowed_function_length") {
+                                vscode.window.showErrorMessage(errorMsg);
+                            }
                             else {
                                 vscode.window.showErrorMessage(errorMsg);
                             }
@@ -127,6 +130,17 @@ let writeDocstring = (context: vscode.ExtensionContext, telemetry: TelemetryServ
                             "docstring": result[0].data.docstring,
                             "point": currentFunction.docstring_point
                         };
+
+                        let docsCount = context.globalState.get<number>('docs_count', 0);
+                        context.globalState.update('docs_count', docsCount + 1);
+
+                        if(docsCount == 5) {
+                            vscode.window.showInformationMessage("Looks like you're using Trelent quite a bit! Want to help shape the future of Trelent? Join our community!", "Join Discord").then(selection => {
+                                if(selection != undefined) {
+                                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://discord.gg/3gWUdP8EeC'));
+                                }
+                            });
+                        }
                         
                         insertDocstrings([composedDocstring], editor, languageId);
 
@@ -163,7 +177,7 @@ let writeDocstring = (context: vscode.ExtensionContext, telemetry: TelemetryServ
 
         const winner = await Promise.race([writeDocstring, timeout]);
         if (winner === 'Timeout') {
-            vscode.window.showErrorMessage('Trelent is experiencing a high load at the moment. Please try again in a few seconds. If you continue to experience this issue, please contact us at contact@trelent.net');
+            vscode.window.showErrorMessage('Trelent is experiencing high load at the moment. Please try again in a few seconds. If you continue to experience this issue, please contact us at contact@trelent.net');
         }
     });		
 };

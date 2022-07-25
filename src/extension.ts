@@ -6,7 +6,7 @@ import { BillingService } from './services/billing';
 import { DocsService } from './services/docs';
 import { TelemetryService } from './services/telemetry';
 import { URIService } from './services/uri';
-import { showPopup } from './util';
+import { showVersionPopup } from './util';
 
 // Mixpanel Public Token
 var publicMPToken = '6a946c760957a81165973cc1ad5812ec';
@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
 	var telemetryService = new TelemetryService(publicMPToken);
 
 	// Invite the user to sign up every time our extension has a minor or major update
-	showPopup(context);
+	showVersionPopup(context);
 
 	// Setup our URI Handler
 	var uriService = new URIService();
