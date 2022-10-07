@@ -48,7 +48,7 @@ export class URIService {
                 }
                 catch (error: any) {
                     // Something went wrong client-side
-                    telemetry.trackError('Client Error', {
+                    telemetry.trackEvent('Client Error', {
                         error: error,
                         time: new Date().toISOString()
                     });

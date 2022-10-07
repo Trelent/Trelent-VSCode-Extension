@@ -23,7 +23,7 @@ export class TelemetryService {
         mixpanel.init(mixpanelToken);
     }
 
-    public trackError(eventName: string, properties: object) {
+    public trackEvent(eventName: string, properties: object) {
         if(this.trackLevel >= 2) {
             mixpanel.track(eventName, properties);
         }

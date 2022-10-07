@@ -6,9 +6,26 @@ import { SUPPORTED_LANGUAGES } from '../api/conf';
 import { ModuleGatherer } from '../helpers/modules';
 import { TelemetryService } from '../services/telemetry';
 import { insertDocstrings } from '../util';
+import { ProgressService } from './progress';
 
 export class DocsService {
-    constructor(){}
+    counter: number;
+    constructor(){
+        this.counter = 0;
+    }
+
+    /*
+    public init(context: vscode.ExtensionContext, progress: ProgressService, telemetry: TelemetryService) {
+        var writeDocstringCmd = vscode.commands.registerCommand('trelent.writeDocstring', () => {
+            writeDocstring(context, telemetry);
+            this.counter++;
+            progress.updateProgress((this.counter/5)*100);
+        });
+
+        // Dispose of our command registration
+        context.subscriptions.push(writeDocstringCmd);
+    }
+    */
 
     public init(context: vscode.ExtensionContext, telemetry: TelemetryService) {
         var writeDocstringCmd = vscode.commands.registerCommand('trelent.writeDocstring', () => {
@@ -135,9 +152,9 @@ let writeDocstring = (context: vscode.ExtensionContext, telemetry: TelemetryServ
                         context.globalState.update('docs_count', docsCount + 1);
 
                         if(docsCount == 5) {
-                            vscode.window.showInformationMessage("Looks like you're using Trelent quite a bit! Want to help shape the future of Trelent? Join our community!", "Join Discord").then(selection => {
+                            vscode.window.showInformationMessage("Looks like you're liking Trelent! Come join our community!", "Join Discord").then(selection => {
                                 if(selection != undefined) {
-                                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://discord.gg/3gWUdP8EeC'));
+                                    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://discord.gg/trelent'));
                                 }
                             });
                         }
@@ -162,7 +179,7 @@ let writeDocstring = (context: vscode.ExtensionContext, telemetry: TelemetryServ
 
             } catch (error: any) {
                 // Something went wrong client-side
-                telemetry.trackError('Client Error', {
+                telemetry.trackEvent('Client Error', {
                     error: error,
                     time: new Date().toISOString()
                 });

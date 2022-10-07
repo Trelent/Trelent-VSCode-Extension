@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { AuthenticationService } from './services/authenticate';
 import { BillingService } from './services/billing';
 import { DocsService } from './services/docs';
+import { ProgressService } from './services/progress';
 import { TelemetryService } from './services/telemetry';
 import { URIService } from './services/uri';
 import { showVersionPopup } from './util';
@@ -30,6 +31,13 @@ export function activate(context: vscode.ExtensionContext) {
 	var authService = new AuthenticationService();
 	authService.init(context, telemetryService);
 
+	/* Not ready for this release */
+	// Setup documentation Progress Service
+	// var progressService = new ProgressService(context);
+	// Setup our Docs Service
+	// var docsService = new DocsService();
+	// docsService.init(context, progressService, telemetryService);
+
 	// Setup our Docs Service
 	var docsService = new DocsService();
 	docsService.init(context, telemetryService);
@@ -37,6 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Setup our Billing Service
 	var billingService = new BillingService();
 	billingService.init(context, telemetryService);
+
 }
 
 // this method is called when your extension is deactivated

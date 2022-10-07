@@ -30,7 +30,7 @@ export class AuthenticationService {
         this.authenticate('signup');
       } catch (err) {
         // Something went wrong client-side
-        telemetry.trackError('Client Error', {
+        telemetry.trackEvent('Client Error', {
             error: err,
             time: new Date().toISOString()
         });
