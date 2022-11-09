@@ -4,7 +4,7 @@
 ![Installs](https://img.shields.io/visual-studio-marketplace/i/Trelent.trelent)
 [![Discord](https://img.shields.io/discord/832745466747420682?label=discord)](https://discord.gg/3gWUdP8EeC)
 
-Documentation sucks. Let us take care of it! Just click anywhere in your function and press `Alt + D` (`⌥ + D` on Mac).
+Documentation sucks. Let us take care of it! Just click anywhere in your function and press `Alt + D` (`⌘ + D` on Mac).
 
 Trelent uses AI to write documentation for your functions instantly.
 
