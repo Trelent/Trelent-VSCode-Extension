@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent - AI Docstrings on Demand",
   "description": "We write docstrings for your code automatically!",
-  "version": "1.7.9",
+  "version": "1.8.0",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
@@ -60,6 +60,10 @@
       {
         "command": "trelent.writeDocstring",
         "title": "Trelent | Write Docstring"
+      },
+      {
+        "command": "trelent.dev.clearTrelentContext",
+        "title": "Trelent Dev | Clear Trelent Context"
       }
     ],
     "keybindings": [
@@ -135,8 +139,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "compile": "tsc -p ./ && yarn run tailwindcss -i ./src/welcomeSite/css/tw.css -o ./src/welcomeSite/css/output.css",
+    "watch": "tsc -watch -p ./ && yarn run tailwindcss -i ./src/welcomeSite/css/tw.css -o ./src/welcomeSite/css/output.css --watch",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
@@ -154,6 +158,7 @@
     "eslint": "^7.27.0",
     "glob": "^7.1.7",
     "mocha": "^9.2.2",
+    "tailwindcss": "^3.2.4",
     "tree-sitter-cli": "^0.20.0",
     "typescript": "^4.3.2",
     "vscode-test": "^1.5.2"
