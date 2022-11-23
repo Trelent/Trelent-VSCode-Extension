@@ -60,10 +60,6 @@
       {
         "command": "trelent.writeDocstring",
         "title": "Trelent | Write Docstring"
-      },
-      {
-        "command": "trelent.dev.clearTrelentContext",
-        "title": "Trelent Dev | Clear Trelent Context"
       }
     ],
     "keybindings": [
@@ -139,8 +135,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./ && yarn run tailwindcss -i ./src/welcomeSite/css/tw.css -o ./src/welcomeSite/css/output.css",
-    "watch": "tsc -watch -p ./ && yarn run tailwindcss -i ./src/welcomeSite/css/tw.css -o ./src/welcomeSite/css/output.css --watch",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
