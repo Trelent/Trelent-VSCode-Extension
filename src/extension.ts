@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
   billingService.init(context, telemetryService);
 
   // Setup our Dev Service (for testing only, will confuse users)
-  var devService = new DevService(context);
+  // var devService = new DevService(context);
 }
 
 // this method is called when your extension is deactivated
