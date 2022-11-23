@@ -8,6 +8,7 @@ import { ProgressService } from "./services/progress";
 import { TelemetryService } from "./services/telemetry";
 import { URIService } from "./services/uri";
 import { handleVersionChange } from "./helpers/util";
+import { DevService } from "./services/dev";
 
 // Mixpanel Public Token
 var publicMPToken = "6a946c760957a81165973cc1ad5812ec";
@@ -43,6 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
   // Setup our Billing Service
   var billingService = new BillingService();
   billingService.init(context, telemetryService);
+
+  // Setup our Dev Service (for testing only, will confuse users)
+  var devService = new DevService(context);
 }
 
 // this method is called when your extension is deactivated

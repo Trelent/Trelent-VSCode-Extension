@@ -1,6 +1,73 @@
 import * as vscode from "vscode";
 import { openWebView } from "./webview";
 
+function isMinorUpdate(previousVersion: string, currentVersion: string) {
+  // Check for malformed string
+  if (previousVersion.indexOf(".") === -1) {
+    return true;
+  }
+
+  // returns array like [1, 1, 1] corresponding to [major, minor, patch]
+  var previousVerArr = previousVersion.split(".").map(Number);
+  var currentVerArr = currentVersion.split(".").map(Number);
+
+  // Check major and minor versions
+  if (
+    currentVerArr[0] > previousVerArr[0] ||
+    currentVerArr[1] > previousVerArr[1] ||
+    currentVerArr[2] > previousVerArr[2]
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+async function showWelcomePage(context: vscode.ExtensionContext) {
+  openWebView("https://trelent-extension-welcome-site.pages.dev/", undefined);
+}
+
+async function showVersionPopup(
+  context: vscode.ExtensionContext,
+  currentVersion: string
+) {
+  const result = await vscode.window.showInformationMessage(
+    `Trelent v${currentVersion} — Improved and quicker docstrings, and a new Discord community to help shape the future of Trelent!`,
+    ...[
+      {
+        title: "Join Community",
+      },
+    ]
+  );
+
+  if (result?.title === "Join Community") {
+    vscode.commands.executeCommand(
+      "vscode.open",
+      vscode.Uri.parse("https://discord.gg/3gWUdP8EeC")
+    );
+  }
+}
+
+export async function handleVersionChange(context: vscode.ExtensionContext) {
+  const previousVersion = context.globalState.get<string>("Trelent.trelent");
+  const currentVersion =
+    vscode.extensions.getExtension("Trelent.trelent")!.packageJSON.version;
+
+  // store latest version
+  context.globalState.update("Trelent.trelent", currentVersion);
+
+  if (previousVersion === undefined) {
+    // first time install
+    showWelcomePage(context);
+  } else if (isMinorUpdate(previousVersion, currentVersion)) {
+    showVersionPopup(context, currentVersion);
+  }
+}
+
+export async function showPopupContent(message: string) {
+  await vscode.window.showInformationMessage(message);
+}
+
 export function compareDocstringPoints(
   docStrA: { point: number[] },
   docStrB: { point: number[] }
@@ -62,71 +129,4 @@ export function insertDocstrings(
     const docStrLength = (docStr.match(/\n/g) || []).length + 1;
     insertedLines += docStrLength;
   });
-}
-
-function isMinorUpdate(previousVersion: string, currentVersion: string) {
-  // Check for malformed string
-  if (previousVersion.indexOf(".") === -1) {
-    return true;
-  }
-
-  // returns array like [1, 1, 1] corresponding to [major, minor, patch]
-  var previousVerArr = previousVersion.split(".").map(Number);
-  var currentVerArr = currentVersion.split(".").map(Number);
-
-  // Check major and minor versions
-  if (
-    currentVerArr[0] > previousVerArr[0] ||
-    currentVerArr[1] > previousVerArr[1] ||
-    currentVerArr[2] > previousVerArr[2]
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-async function showWelcomePage(context: vscode.ExtensionContext) {
-  openWebView(context, "https://trelent.net");
-}
-
-async function showVersionPopup(
-  context: vscode.ExtensionContext,
-  currentVersion: string
-) {
-  const result = await vscode.window.showInformationMessage(
-    `Trelent v${currentVersion} — Improved and quicker docstrings, and a new Discord community to help shape the future of Trelent!`,
-    ...[
-      {
-        title: "Join Community",
-      },
-    ]
-  );
-
-  if (result?.title === "Join Community") {
-    vscode.commands.executeCommand(
-      "vscode.open",
-      vscode.Uri.parse("https://discord.gg/3gWUdP8EeC")
-    );
-  }
-}
-
-export async function handleVersionChange(context: vscode.ExtensionContext) {
-  const previousVersion = context.globalState.get<string>("Trelent.trelent");
-  const currentVersion =
-    vscode.extensions.getExtension("Trelent.trelent")!.packageJSON.version;
-
-  // store latest version
-  context.globalState.update("Trelent.trelent", currentVersion);
-
-  if (previousVersion === undefined) {
-    showWelcomePage(context);
-    showVersionPopup(context, currentVersion);
-  } else if (isMinorUpdate(previousVersion, currentVersion)) {
-    showVersionPopup(context, currentVersion);
-  }
-}
-
-export async function showPopupContent(message: string) {
-  await vscode.window.showInformationMessage(message);
 }
