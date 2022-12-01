@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { requestDocstrings, parseCurrentFunction } from "../api/api";
 import { SUPPORTED_LANGUAGES } from "../api/conf";
 import { ModuleGatherer } from "../helpers/modules";
-import { TelemetryService } from "../services/telemetry";
+import { TelemetryService } from "./telemetry";
 import { insertDocstrings } from "../helpers/util";
 import { ProgressService } from "./progress";
 
@@ -14,19 +14,27 @@ export class DocsService {
     this.counter = 0;
   }
 
+  public init(
+    context: vscode.ExtensionContext,
+    telemetry: TelemetryService,
+    progress?: ProgressService
+  ) {
+    var writeDocstringCmd = vscode.commands.registerCommand(
+      "trelent.writeDocstring",
+      () => {
+        writeDocstring(context, telemetry);
+        if (progress) {
+          this.counter++;
+          progress.updateProgress(this.counter);
+        }
+      }
+    );
+
+    // Dispose of our command registration
+    context.subscriptions.push(writeDocstringCmd);
+  }
+
   /*
-    public init(context: vscode.ExtensionContext, progress: ProgressService, telemetry: TelemetryService) {
-        var writeDocstringCmd = vscode.commands.registerCommand('trelent.writeDocstring', () => {
-            writeDocstring(context, telemetry);
-            this.counter++;
-            progress.updateProgress((this.counter/5)*100);
-        });
-
-        // Dispose of our command registration
-        context.subscriptions.push(writeDocstringCmd);
-    }
-    */
-
   public init(context: vscode.ExtensionContext, telemetry: TelemetryService) {
     var writeDocstringCmd = vscode.commands.registerCommand(
       "trelent.writeDocstring",
@@ -38,6 +46,7 @@ export class DocsService {
     // Dispose of our command registration
     context.subscriptions.push(writeDocstringCmd);
   }
+*/
 }
 
 let writeDocstring = (

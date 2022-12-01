@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { TelemetryService } from "../services/telemetry";
 import { openWebView } from "./webview";
 
 function isMinorUpdate(previousVersion: string, currentVersion: string) {
@@ -24,7 +25,8 @@ function isMinorUpdate(previousVersion: string, currentVersion: string) {
 }
 
 async function showWelcomePage(context: vscode.ExtensionContext) {
-  openWebView("https://trelent-extension-welcome-site.pages.dev/", undefined);
+  //openWebView("https://trelent-extension-welcome-site.pages.dev/", undefined);
+  openWebView(context);
 }
 
 async function showVersionPopup(
@@ -43,12 +45,15 @@ async function showVersionPopup(
   if (result?.title === "Join Community") {
     vscode.commands.executeCommand(
       "vscode.open",
-      vscode.Uri.parse("https://discord.gg/3gWUdP8EeC")
+      vscode.Uri.parse("https://discord.com/invite/trelent")
     );
   }
 }
 
-export async function handleVersionChange(context: vscode.ExtensionContext) {
+export async function handleVersionChange(
+  context: vscode.ExtensionContext,
+  telemetry: TelemetryService
+) {
   const previousVersion = context.globalState.get<string>("Trelent.trelent");
   const currentVersion =
     vscode.extensions.getExtension("Trelent.trelent")!.packageJSON.version;
@@ -57,8 +62,14 @@ export async function handleVersionChange(context: vscode.ExtensionContext) {
   context.globalState.update("Trelent.trelent", currentVersion);
 
   if (previousVersion === undefined) {
-    // first time install
+    // First time install
     showWelcomePage(context);
+
+    // Fire an event
+    telemetry.trackEvent("Install", {
+      version: currentVersion,
+      sender: "vs-code",
+    });
   } else if (isMinorUpdate(previousVersion, currentVersion)) {
     showVersionPopup(context, currentVersion);
   }

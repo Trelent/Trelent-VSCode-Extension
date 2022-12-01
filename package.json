@@ -34,7 +34,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./out/extension.js",
+  "main": "./build/ext-src/extension.js",
   "contributes": {
     "commands": [
       {
@@ -60,6 +60,14 @@
       {
         "command": "trelent.writeDocstring",
         "title": "Trelent | Write Docstring"
+      },
+      {
+        "command": "trelent.dev.clearTrelentContext",
+        "title": "Trelent DEV | Clear Trelent Context"
+      },
+      {
+        "command": "trelent.help",
+        "title": "Trelent | Help"
       }
     ],
     "keybindings": [
@@ -134,12 +142,10 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "vscode:prepublish": "node ./scripts/build-non-split.js && tsc -p tsconfig.extension.json",
+    "start": "react-scripts start",
+    "build": "node ./scripts/build-non-split.js && tsc -p tsconfig.extension.json",
+    "eject": "react-scripts eject"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
@@ -147,15 +153,21 @@
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.18.5",
     "@types/polka": "^0.5.4",
+    "@types/react": "^18.0.25",
+    "@types/react-dom": "^18.0.9",
     "@types/vscode": "^1.60.0",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
+    "autoprefixer": "^10.4.13",
+    "create-react-app": "^5.0.1",
     "electron-rebuild": "^3.2.3",
     "eslint": "^7.27.0",
     "glob": "^7.1.7",
     "mocha": "^9.2.2",
+    "postcss": "^8.4.19",
+    "react-scripts": "^5.0.1",
+    "rewire": "^6.0.0",
     "tailwindcss": "^3.2.4",
-    "tree-sitter-cli": "^0.20.0",
     "typescript": "^4.3.2",
     "vscode-test": "^1.5.2"
   },
@@ -163,9 +175,14 @@
     "axios": "^0.22.0",
     "mixpanel-browser": "^2.45.0",
     "polka": "^0.5.2",
-    "tree-sitter-java": "^0.19.1",
-    "tree-sitter-javascript": "^0.19.0",
-    "tree-sitter-python": "^0.19.0",
-    "web-tree-sitter": "^0.19.4"
-  }
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "web-vitals": "^3.1.0"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }
