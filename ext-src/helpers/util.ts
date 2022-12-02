@@ -34,10 +34,13 @@ async function showVersionPopup(
   currentVersion: string
 ) {
   const result = await vscode.window.showInformationMessage(
-    `Trelent v${currentVersion} — Improved and quicker docstrings, and a new Discord community to help shape the future of Trelent!`,
+    `Trelent v${currentVersion} — Just a small patch to add a Help page! Try running 'Trelent: Help' from the command pallette!`,
     ...[
       {
         title: "Join Community",
+      },
+      {
+        title: "Help",
       },
     ]
   );
@@ -47,6 +50,8 @@ async function showVersionPopup(
       "vscode.open",
       vscode.Uri.parse("https://discord.com/invite/trelent")
     );
+  } else if (result?.title === "Help") {
+    vscode.commands.executeCommand("trelent.help");
   }
 }
 

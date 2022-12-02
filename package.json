@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent - AI Docstrings on Demand",
   "description": "We write docstrings for your code automatically!",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
@@ -39,35 +39,35 @@
     "commands": [
       {
         "command": "trelent.login",
-        "title": "Trelent | Login"
+        "title": "Trelent: Login"
       },
       {
         "command": "trelent.logout",
-        "title": "Trelent | Logout"
+        "title": "Trelent: Logout"
       },
       {
         "command": "trelent.portal",
-        "title": "Trelent | Billing Portal"
+        "title": "Trelent: Billing Portal"
       },
       {
         "command": "trelent.upgrade",
-        "title": "Trelent | Upgrade Account"
+        "title": "Trelent: Upgrade Account"
       },
       {
         "command": "trelent.signup",
-        "title": "Trelent | Sign Up"
+        "title": "Trelent: Sign Up"
       },
       {
         "command": "trelent.writeDocstring",
-        "title": "Trelent | Write Docstring"
-      },
-      {
-        "command": "trelent.dev.clearTrelentContext",
-        "title": "Trelent DEV | Clear Trelent Context"
+        "title": "Trelent: Write Docstring"
       },
       {
         "command": "trelent.help",
-        "title": "Trelent | Help"
+        "title": "Trelent: Help"
+      },
+      {
+        "command": "trelent.dev.clearTrelentContext",
+        "title": "Trelent DEV: Clear Trelent Context"
       }
     ],
     "keybindings": [

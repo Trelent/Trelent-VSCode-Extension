@@ -1,3 +1,5 @@
+import packageData from "../package.json";
+
 export default function app() {
   return (
     <div
@@ -29,18 +31,29 @@ export default function app() {
                       Alt + D
                     </code>{" "}
                     or
-                    <code className="bg-slate-700 p-1 mx-1 rounded">
-                      Cmd + D
-                    </code>
+                    <code className="bg-slate-700 p-1 mx-1 rounded">⌘ + D</code>
                     on a Mac.
                     <br />
                     <br />
-                    You can also use the
+                    You can also run the
                     <code className="bg-slate-700 p-1 mx-2 rounded">
                       Trelent: Write Docstring
                     </code>
                     command in the Command Palette.
                     <br />
+                    <br />
+                    To find this page again, you may run the
+                    <code className="bg-slate-700 p-1 mx-2 rounded">
+                      Trelent: Help
+                    </code>
+                    command in the Command Palette.
+                    <br />
+                    <br />
+                    <br />
+                    Version:
+                    <code className="bg-slate-700 p-1 mx-1 rounded">
+                      {packageData.version}
+                    </code>
                   </p>
                 </div>
               </div>
