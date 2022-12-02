@@ -9,6 +9,7 @@ import { TelemetryService } from "./services/telemetry";
 import { URIService } from "./services/uri";
 import { handleVersionChange } from "./helpers/util";
 import { DevService } from "./services/dev";
+import { openWebView } from "./helpers/webview";
 
 // Mixpanel Public Token
 var publicMPToken = "6a946c760957a81165973cc1ad5812ec";
@@ -20,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
   var telemetryService = new TelemetryService(publicMPToken);
 
   // Handle version changes
-  handleVersionChange(context);
+  handleVersionChange(context, telemetryService);
 
   // Setup our URI Handler
   var uriService = new URIService();
@@ -30,12 +31,12 @@ export function activate(context: vscode.ExtensionContext) {
   var authService = new AuthenticationService();
   authService.init(context, telemetryService);
 
-  /* Not ready for this release */
-  // Setup documentation Progress Service
-  // var progressService = new ProgressService(context);
-  // Setup our Docs Service
-  // var docsService = new DocsService();
-  // docsService.init(context, progressService, telemetryService);
+  /* Not ready for this release
+  //Setup documentation Progress Service
+  var progressService = new ProgressService(context);
+  //Setup our Docs Service
+  var docsService = new DocsService();
+  docsService.init(context, progressService, telemetryService); */
 
   // Setup our Docs Service
   var docsService = new DocsService();
@@ -46,7 +47,14 @@ export function activate(context: vscode.ExtensionContext) {
   billingService.init(context, telemetryService);
 
   // Setup our Dev Service (for testing only, will confuse users)
-  // var devService = new DevService(context);
+  var devService = new DevService(context);
+
+  var helpCmd = vscode.commands.registerCommand("trelent.help", () => {
+    openWebView(context);
+  });
+
+  // Dispose of our command registration
+  context.subscriptions.push(helpCmd);
 }
 
 // this method is called when your extension is deactivated
