@@ -10,6 +10,7 @@ import { URIService } from "./services/uri";
 import { handleVersionChange } from "./helpers/util";
 import { DevService } from "./services/dev";
 import { openWebView } from "./helpers/webview";
+import { CodeParserService } from "./services/codeParser";
 
 // Mixpanel Public Token
 var publicMPToken = "6a946c760957a81165973cc1ad5812ec";
@@ -31,23 +32,27 @@ export function activate(context: vscode.ExtensionContext) {
   var authService = new AuthenticationService();
   authService.init(context, telemetryService);
 
-  /* Not ready for this release
-  //Setup documentation Progress Service
-  var progressService = new ProgressService(context);
+  // Setup our CodeParser service
+  var codeParserService = new CodeParserService(context);
+
+  //Setup progress Service
+  var progressService = new ProgressService(context, codeParserService);
+
   //Setup our Docs Service
   var docsService = new DocsService();
-  docsService.init(context, progressService, telemetryService); */
-
-  // Setup our Docs Service
-  var docsService = new DocsService();
-  docsService.init(context, telemetryService);
+  docsService.init(
+    context,
+    codeParserService,
+    progressService,
+    telemetryService
+  );
 
   // Setup our Billing Service
   var billingService = new BillingService();
   billingService.init(context, telemetryService);
 
   // Setup our Dev Service (for testing only, will confuse users)
-  var devService = new DevService(context);
+  // var devService = new DevService(context);
 
   var helpCmd = vscode.commands.registerCommand("trelent.help", () => {
     openWebView(context);

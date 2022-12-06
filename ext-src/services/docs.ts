@@ -2,11 +2,13 @@
 import * as vscode from "vscode";
 
 import { requestDocstrings, parseCurrentFunction } from "../api/api";
-import { SUPPORTED_LANGUAGES } from "../api/conf";
+import { isLanguageSupported } from "../helpers/langs";
 import { ModuleGatherer } from "../helpers/modules";
 import { TelemetryService } from "./telemetry";
 import { insertDocstrings } from "../helpers/util";
 import { ProgressService } from "./progress";
+import { CodeParserService } from "./codeParser";
+import { Function } from "../parser/types";
 
 export class DocsService {
   counter: number;
@@ -16,16 +18,17 @@ export class DocsService {
 
   public init(
     context: vscode.ExtensionContext,
-    telemetry: TelemetryService,
-    progress?: ProgressService
+    parser: CodeParserService,
+    progress: ProgressService,
+    telemetry: TelemetryService
   ) {
     var writeDocstringCmd = vscode.commands.registerCommand(
       "trelent.writeDocstring",
       () => {
-        writeDocstring(context, telemetry);
+        writeDocstring(context, parser, telemetry);
         if (progress) {
           this.counter++;
-          progress.updateProgress(this.counter);
+          progress.refresh();
         }
       }
     );
@@ -33,24 +36,11 @@ export class DocsService {
     // Dispose of our command registration
     context.subscriptions.push(writeDocstringCmd);
   }
-
-  /*
-  public init(context: vscode.ExtensionContext, telemetry: TelemetryService) {
-    var writeDocstringCmd = vscode.commands.registerCommand(
-      "trelent.writeDocstring",
-      () => {
-        writeDocstring(context, telemetry);
-      }
-    );
-
-    // Dispose of our command registration
-    context.subscriptions.push(writeDocstringCmd);
-  }
-*/
 }
 
 let writeDocstring = (
   context: vscode.ExtensionContext,
+  parser: CodeParserService,
   telemetry: TelemetryService
 ) => {
   // Initialize a progress bar
@@ -61,190 +51,165 @@ let writeDocstring = (
     },
     async () => {
       const writeDocstring = new Promise(async (resolve, reject) => {
-        try {
-          // Get the editor instance
-          let editor = vscode.window.activeTextEditor;
-          if (editor == undefined) {
-            vscode.window.showErrorMessage("You don't have an editor open.");
-            return resolve("Failure");
-          }
-
-          if (!SUPPORTED_LANGUAGES.includes(editor.document.languageId)) {
-            vscode.window.showErrorMessage("We don't support that language.");
-            return resolve("Failure");
-          }
-
-          // Get the current document language
-          let languageId = editor.document.languageId;
-
-          // Retrieve the function to be documented
-          let cursorPosition = editor.selection.active;
-          let documentContent = editor.document.getText();
-
-          // Call our API to parse out the currently selected function
-          parseCurrentFunction(documentContent, languageId, [
-            cursorPosition.line,
-            cursorPosition.character,
-          ])
-            .then(async (response) => {
-              let result = response.data;
-
-              if (result == null || result.success == false) {
-                vscode.window.showErrorMessage(
-                  "We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit."
-                );
-                return resolve("Failure");
-              } else if (result.current_function == null) {
-                vscode.window.showErrorMessage(
-                  "We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit."
-                );
-                return resolve("Failure");
-              }
-
-              let currentFunction = result.current_function;
-              let format =
-                vscode.workspace
-                  .getConfiguration("trelent")
-                  .get(`docs.format.${languageId}`) || "rest";
-              let modulesText = await ModuleGatherer.getModules(
-                documentContent,
-                languageId
-              );
-
-              if (typeof format != "string") {
-                vscode.window.showErrorMessage(
-                  "We couldn't find a doc format for that language."
-                );
-                return resolve("Failure");
-              }
-
-              requestDocstrings(
-                context,
-                format.toLowerCase(),
-                [currentFunction],
-                vscode.env.machineId,
-                languageId,
-                modulesText
-              )
-                .then((result) => {
-                  if (result == null) {
-                    vscode.window.showErrorMessage(
-                      "Whoa there! One docstring at a time, please."
-                    );
-                    return resolve("Failure");
-                  }
-
-                  if (result[0].successful === false) {
-                    let errorMsg = result[0].error;
-                    let errorType = result[0].error_type;
-
-                    // Change the messaging based on the error type
-                    if (errorType == "exceeded_anonymous_quota") {
-                      let actions = [
-                        { title: "Sign Up", command: "trelent.signup" },
-                        { title: "Login", command: "trelent.login" },
-                      ];
-
-                      vscode.window
-                        .showErrorMessage(errorMsg, ...actions)
-                        .then((selection) => {
-                          if (selection != undefined) {
-                            vscode.commands.executeCommand(selection.command);
-                          }
-                        });
-                    } else if (errorType == "exceeded_free_quota") {
-                      let actions = [
-                        { title: "Upgrade", command: "trelent.upgrade" },
-                        {
-                          title: "Learn More",
-                          command: "trelent.upgrade_info",
-                        },
-                      ];
-
-                      vscode.window
-                        .showErrorMessage(errorMsg, ...actions)
-                        .then((selection) => {
-                          if (selection != undefined) {
-                            vscode.commands.executeCommand(selection.command);
-                          }
-                        });
-                    } else if (errorType == "exceeded_paid_quota") {
-                      vscode.window.showErrorMessage(errorMsg);
-                    } else if (
-                      errorType == "exceeded_allowed_function_length"
-                    ) {
-                      vscode.window.showErrorMessage(errorMsg);
-                    } else {
-                      vscode.window.showErrorMessage(errorMsg);
-                    }
-
-                    return resolve("Failure");
-                  }
-
-                  if (editor == undefined) {
-                    vscode.window.showErrorMessage(
-                      "It looks like you closed your editor! Please try again, and keep the editor open until the docstrings have been written."
-                    );
-                    return resolve("Failure");
-                  }
-
-                  let composedDocstring = {
-                    docstring: result[0].data.docstring,
-                    point: currentFunction.docstring_point,
-                  };
-
-                  let docsCount = context.globalState.get<number>(
-                    "docs_count",
-                    0
-                  );
-                  context.globalState.update("docs_count", docsCount + 1);
-
-                  if (docsCount == 5) {
-                    vscode.window
-                      .showInformationMessage(
-                        "Looks like you're liking Trelent! Come join our community!",
-                        "Join Discord"
-                      )
-                      .then((selection) => {
-                        if (selection != undefined) {
-                          vscode.commands.executeCommand(
-                            "vscode.open",
-                            vscode.Uri.parse("https://discord.gg/trelent")
-                          );
-                        }
-                      });
-                  }
-
-                  insertDocstrings([composedDocstring], editor, languageId);
-
-                  return resolve("Success");
-                })
-                .catch((error) => {
-                  // Doc writing failed server-side with a 500 error. Very weird...
-                  console.error(error);
-                  vscode.window.showErrorMessage(
-                    "Doc writing failed. Please try again later."
-                  );
-                  return resolve("Failure");
-                });
-            })
-            .catch((error) => {
-              // Parsing failed server-side
-              console.error(error);
-              vscode.window.showErrorMessage(
-                "Failed to parse your selection! Does this code contain a function or method?"
-              );
-              return resolve("Failure");
-            });
-        } catch (error: any) {
-          // Something went wrong client-side
-          telemetry.trackEvent("Client Error", {
-            error: error,
-            time: new Date().toISOString(),
-          });
-
+        // Get the editor instance
+        let editor = vscode.window.activeTextEditor;
+        if (editor == undefined) {
+          vscode.window.showErrorMessage("You don't have an editor open.");
           return resolve("Failure");
         }
+
+        if (!isLanguageSupported(editor.document.languageId)) {
+          vscode.window.showErrorMessage("We don't support that language.");
+          return resolve("Failure");
+        }
+
+        // Get the current document language
+        let languageId = editor.document.languageId;
+
+        // Get the cursor position
+        let cursorPosition = editor.selection.active;
+        let documentContent = editor.document.getText();
+
+        // Get currently selected function
+        let functions = parser.getFunctions();
+
+        // Check if our cursor is within any of those functions
+        let currentFunction = isCursorWithinFunction(cursorPosition, functions);
+        if (currentFunction == undefined) {
+          vscode.window.showErrorMessage(
+            "We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit."
+          );
+          return resolve("Failure");
+        }
+
+        let format =
+          vscode.workspace
+            .getConfiguration("trelent")
+            .get(`docs.format.${languageId}`) || "rest";
+
+        let modulesText = await ModuleGatherer.getModules(
+          documentContent,
+          languageId
+        );
+
+        if (typeof format != "string") {
+          vscode.window.showErrorMessage(
+            "We couldn't find a doc format for that language."
+          );
+          return resolve("Failure");
+        }
+
+        requestDocstrings(
+          context,
+          format.toLowerCase(),
+          [currentFunction],
+          vscode.env.machineId,
+          languageId,
+          modulesText
+        )
+          .then((result) => {
+            if (result == null) {
+              vscode.window.showErrorMessage(
+                "Whoa there! One docstring at a time, please."
+              );
+              return resolve("Failure");
+            }
+
+            if (result[0].successful === false) {
+              let errorMsg = result[0].error;
+              let errorType = result[0].error_type;
+
+              // Change the messaging based on the error type
+              if (errorType == "exceeded_anonymous_quota") {
+                let actions = [
+                  { title: "Sign Up", command: "trelent.signup" },
+                  { title: "Login", command: "trelent.login" },
+                ];
+
+                vscode.window
+                  .showErrorMessage(errorMsg, ...actions)
+                  .then((selection) => {
+                    if (selection != undefined) {
+                      vscode.commands.executeCommand(selection.command);
+                    }
+                  });
+              } else if (errorType == "exceeded_free_quota") {
+                let actions = [
+                  { title: "Upgrade", command: "trelent.upgrade" },
+                  {
+                    title: "Learn More",
+                    command: "trelent.upgrade_info",
+                  },
+                ];
+
+                vscode.window
+                  .showErrorMessage(errorMsg, ...actions)
+                  .then((selection) => {
+                    if (selection != undefined) {
+                      vscode.commands.executeCommand(selection.command);
+                    }
+                  });
+              } else if (errorType == "exceeded_paid_quota") {
+                vscode.window.showErrorMessage(errorMsg);
+              } else if (errorType == "exceeded_allowed_function_length") {
+                vscode.window.showErrorMessage(errorMsg);
+              } else {
+                vscode.window.showErrorMessage(errorMsg);
+              }
+
+              return resolve("Failure");
+            }
+
+            if (editor == undefined) {
+              vscode.window.showErrorMessage(
+                "It looks like you closed your editor! Please try again, and keep the editor open until the docstrings have been written."
+              );
+              return resolve("Failure");
+            }
+
+            if (currentFunction == undefined) {
+              vscode.window.showErrorMessage(
+                "We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit."
+              );
+              return resolve("Failure");
+            }
+
+            let composedDocstring = {
+              docstring: result[0].data.docstring,
+              point: currentFunction.docstring_point,
+            };
+
+            let docsCount = context.globalState.get<number>("docs_count", 0);
+            context.globalState.update("docs_count", docsCount + 1);
+
+            if (docsCount == 5) {
+              vscode.window
+                .showInformationMessage(
+                  "Looks like you're liking Trelent! Come join our community!",
+                  "Join Discord"
+                )
+                .then((selection) => {
+                  if (selection != undefined) {
+                    vscode.commands.executeCommand(
+                      "vscode.open",
+                      vscode.Uri.parse("https://discord.gg/trelent")
+                    );
+                  }
+                });
+            }
+
+            insertDocstrings([composedDocstring], editor, languageId);
+
+            return resolve("Success");
+          })
+          .catch((error) => {
+            // Doc writing failed server-side with a 500 error. Very weird...
+            console.error(error);
+            vscode.window.showErrorMessage(
+              "Doc writing failed. Please try again later."
+            );
+            return resolve("Failure");
+          });
       });
 
       const timeout = new Promise((resolve, reject) => {
@@ -261,4 +226,20 @@ let writeDocstring = (
       }
     }
   );
+};
+
+const isCursorWithinFunction = (
+  cursorPosition: vscode.Position,
+  functions: Function[]
+): Function | undefined => {
+  for (let func of functions) {
+    if (
+      cursorPosition.line >= func.range[0][0] &&
+      cursorPosition.line <= func.range[1][0]
+    ) {
+      return func;
+    }
+  }
+
+  return undefined;
 };

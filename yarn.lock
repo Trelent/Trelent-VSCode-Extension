@@ -6999,6 +6999,11 @@ multicast-dns@^7.2.5:
     dns-packet "^5.2.2"
     thunky "^1.0.2"
 
+nan@^2.12.1, nan@^2.14.0, nan@^2.14.1, nan@^2.15.0:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.17.0.tgz#c0150a2368a182f033e9aa5195ec76ea41a199cb"
+  integrity sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==
+
 nanoid@3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.1.tgz#6347a18cac88af88f58af0b3594b723d5e99bb35"
@@ -9473,6 +9478,38 @@ tr46@^2.1.0:
   resolved "https://registry.yarnpkg.com/traverse/-/traverse-0.3.9.tgz#717b8f220cc0bb7b44e40514c22b2e8bbc70d8b9"
   integrity sha512-iawgk0hLP3SxGKDfnDJf8wTz4p2qImnyihM5Hh/sGvQ3K37dPi/w8sRhdNIxYA1TwFwc5mDhIJq+O0RsvXBKdQ==
 
+tree-sitter-c-sharp@^0.20.0:
+  version "0.20.0"
+  resolved "https://registry.yarnpkg.com/tree-sitter-c-sharp/-/tree-sitter-c-sharp-0.20.0.tgz#9615110b6ced219159f26d19c8f1cfb85b06bc18"
+  integrity sha512-HOR6fQtghA7hp/LC6fQzzCyRv8TINh/hqYUULYHOYmwsCV73j4PHLYg1536qv/vff1KaRd7Qx3Fs3VLzx1/WIQ==
+  dependencies:
+    nan "^2.14.0"
+
+tree-sitter-cli@^0.20.7:
+  version "0.20.7"
+  resolved "https://registry.yarnpkg.com/tree-sitter-cli/-/tree-sitter-cli-0.20.7.tgz#e3e1b5af22677e70337f5c8b201f9447fd4a144f"
+  integrity sha512-MHABT8oCPr4D0fatsPo6ATQ9H4h9vHpPRjlxkxJs80tpfAEKGn6A1zU3eqfCKBcgmfZDe9CiL3rKOGMzYHwA3w==
+
+"tree-sitter-java@https://github.com/tree-sitter/tree-sitter-java":
+  version "0.19.1"
+  resolved "https://github.com/tree-sitter/tree-sitter-java#09d650def6cdf7f479f4b78f595e9ef5b58ce31e"
+  dependencies:
+    nan "^2.14.1"
+
+tree-sitter-javascript@^0.19.0:
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/tree-sitter-javascript/-/tree-sitter-javascript-0.19.0.tgz#20fc0da277502dac2bb3bf9ff75372268e761558"
+  integrity sha512-SNykDdNgmlJZhX02ZIu0TQF9P7t847jV7769SxA9XrZ2QXjofQsVTMEi9+LpXZKsI0UoFYI25FnZm3fFm0z2yw==
+  dependencies:
+    nan "^2.12.1"
+
+tree-sitter-python@^0.20.1:
+  version "0.20.1"
+  resolved "https://registry.yarnpkg.com/tree-sitter-python/-/tree-sitter-python-0.20.1.tgz#a1a479263fe24b121923c133052815d8bc80d3d3"
+  integrity sha512-fyoWFw/C3pZG9AdYElUQlFLPQFxeUQZe0nDGv/ksESvedoPw9JBpPga2l9PNBX/QKMpTmVRB0lM2/l0LVMnFbg==
+  dependencies:
+    nan "^2.15.0"
+
 trouter@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/trouter/-/trouter-2.0.1.tgz#2726a5f8558e090d24c3a393f09eaab1df232df6"
@@ -9797,6 +9834,11 @@ wcwidth@^1.0.1:
   integrity sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==
   dependencies:
     defaults "^1.0.3"
+
+web-tree-sitter@^0.20.7:
+  version "0.20.7"
+  resolved "https://registry.yarnpkg.com/web-tree-sitter/-/web-tree-sitter-0.20.7.tgz#b0ddb78e8244221a3100f432c7e162516cd9cd09"
+  integrity sha512-flC9JJmTII9uAeeYpWF8hxDJ7bfY+leldQryetll8Nv4WgI+MXc6h7TiyAZASWl9uC9TvmfdgOjZn1DAQecb3A==
 
 web-vitals@^3.1.0:
   version "3.1.0"
