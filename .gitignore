@@ -4,4 +4,4 @@ build
 .vscode
 *.vsix
 src/welcome-page-out
-.DS_STORE
+.DS_Store
