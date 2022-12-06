@@ -11,7 +11,7 @@ export class ProgressService {
 
     this.progressBar = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
-      100
+      10000
     );
     this.progressBar.text = "File 0% Documented";
     this.progressBar.backgroundColor = new vscode.ThemeColor(

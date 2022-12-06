@@ -49,6 +49,11 @@ export default function app() {
                     command in the Command Palette.
                     <br />
                     <br />
+                    We also roughly estimate how much of your code is
+                    documented! Just check out the status bar at the bottom of
+                    the editor once you open a supported file type!
+                    <br />
+                    <br />
                     <br />
                     Version:
                     <code className="bg-slate-700 p-1 mx-1 rounded">
