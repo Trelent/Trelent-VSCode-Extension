@@ -25,12 +25,10 @@ export function activate(context: vscode.ExtensionContext) {
   handleVersionChange(context, telemetryService);
 
   // Setup our URI Handler
-  var uriService = new URIService();
-  uriService.init(context, telemetryService);
+  var uriService = new URIService(context, telemetryService);
 
   // Setup our Auth service
-  var authService = new AuthenticationService();
-  authService.init(context, telemetryService);
+  var authService = new AuthenticationService(context, telemetryService);
 
   // Setup our CodeParser service
   var codeParserService = new CodeParserService(context);
@@ -39,8 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
   var progressService = new ProgressService(context, codeParserService);
 
   //Setup our Docs Service
-  var docsService = new DocsService();
-  docsService.init(
+  var docsService = new DocsService(
     context,
     codeParserService,
     progressService,
@@ -48,8 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Setup our Billing Service
-  var billingService = new BillingService();
-  billingService.init(context, telemetryService);
+  var billingService = new BillingService(context, telemetryService);
 
   // Setup our Dev Service (for testing only, will confuse users)
   // var devService = new DevService(context);

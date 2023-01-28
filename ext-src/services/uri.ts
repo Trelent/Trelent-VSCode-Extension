@@ -4,10 +4,7 @@ import { TelemetryService } from "./telemetry";
 import { TokenManager } from "../helpers/token";
 
 export class URIService {
-  public init(
-    context: vscode.ExtensionContext,
-    telemetry: TelemetryService
-  ): void {
+  constructor(context: vscode.ExtensionContext, telemetry: TelemetryService) {
     var handler = vscode.window.registerUriHandler({
       async handleUri(uri: vscode.Uri) {
         try {

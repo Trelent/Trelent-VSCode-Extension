@@ -12,16 +12,13 @@ import { Function } from "../parser/types";
 
 export class DocsService {
   counter: number;
-  constructor() {
-    this.counter = 0;
-  }
-
-  public init(
+  constructor(
     context: vscode.ExtensionContext,
     parser: CodeParserService,
     progress: ProgressService,
     telemetry: TelemetryService
   ) {
+    this.counter = 0;
     var writeDocstringCmd = vscode.commands.registerCommand(
       "trelent.writeDocstring",
       () => {
@@ -51,6 +48,15 @@ let writeDocstring = (
     },
     async () => {
       const writeDocstring = new Promise(async (resolve, reject) => {
+        // Check if telemetry is too strict
+        if (!telemetry.canSendServerData()) {
+          vscode.window.showErrorMessage(
+            "Due to your telemetry settings, we cannot " +
+              "fulfill your request."
+          );
+          return resolve("Failure");
+        }
+
         // Get the editor instance
         let editor = vscode.window.activeTextEditor;
         if (editor == undefined) {
