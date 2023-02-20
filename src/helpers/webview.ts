@@ -98,18 +98,19 @@ class ReactPanel {
     const manifest = require(path.join(
       this._extensionPath,
       "build",
+      "react-help-app",
       "asset-manifest.json"
     ));
     const mainScript = manifest["files"]["main.js"];
     const mainStyle = manifest["files"]["main.css"];
 
     const scriptPathOnDisk = vscode.Uri.file(
-      path.join(this._extensionPath, "build", mainScript)
+      path.join(this._extensionPath, "build", "react-help-app", mainScript)
     );
     const scriptUri = this._panel.webview.asWebviewUri(scriptPathOnDisk);
 
     const stylePathOnDisk = vscode.Uri.file(
-      path.join(this._extensionPath, "build", mainStyle)
+      path.join(this._extensionPath, "build", "react-help-app", mainStyle)
     );
     const styleUri = this._panel.webview.asWebviewUri(stylePathOnDisk);
 
@@ -125,7 +126,7 @@ class ReactPanel {
 				<title>Trelent Help</title>
 				<link rel="stylesheet" type="text/css" href="${styleUri}">
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;">
-				<base href="${vscode.Uri.file(path.join(this._extensionPath, "build")).with({
+				<base href="${vscode.Uri.file(path.join(this._extensionPath, "build", "react-help-app")).with({
           scheme: "vscode-resource",
         })}/">
 			</head>
