@@ -34,7 +34,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./build/ext-src/extension.js",
+  "main": "./build/src/extension.js",
   "contributes": {
     "commands": [
       {
@@ -142,9 +142,9 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "node ./scripts/build-non-split.js && tsc -p tsconfig.extension.json && cp -a ./grammars/. ./build/ext-src/grammars/ && cp node_modules/web-tree-sitter/tree-sitter.wasm build/ext-src/grammars/",
+    "vscode:prepublish": "./react-help-app/build.sh && tsc -p tsconfig.extension.json && cp -a ./grammars/. ./build/src/grammars/ && cp node_modules/web-tree-sitter/tree-sitter.wasm build/src/grammars/",
     "start": "react-scripts start",
-    "build": "node ./scripts/build-non-split.js && tsc -p tsconfig.extension.json && cp -a ./grammars/. ./build/ext-src/grammars/ && cp node_modules/web-tree-sitter/tree-sitter.wasm build/ext-src/grammars/",
+    "build": "./react-help-app/build.sh && tsc -p tsconfig.extension.json && cp -a ./grammars/. ./build/src/grammars/ && cp node_modules/web-tree-sitter/tree-sitter.wasm build/src/grammars/",
     "eject": "react-scripts eject"
   },
   "devDependencies": {
