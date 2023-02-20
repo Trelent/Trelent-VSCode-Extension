@@ -69,6 +69,9 @@ let writeDocstring = (
           return resolve("Failure");
         }
 
+        //Parse document
+        await parser.parse(editor.document);
+
         // Get the current document language
         let languageId = editor.document.languageId;
 

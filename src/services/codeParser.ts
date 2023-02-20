@@ -52,6 +52,7 @@ export class CodeParserService {
       })
       .then(() => {
         this.parser = new Parser();
+        
         // Now parse when the active editor changes, a document is saved, or a document is opened
         vscode.window.onDidChangeActiveTextEditor(
           (editor: vscode.TextEditor | undefined) => {
@@ -66,7 +67,7 @@ export class CodeParserService {
       });
   }
 
-  private parse = (doc: vscode.TextDocument) => {
+  public parse = async (doc: vscode.TextDocument) => {
     const lang = getLanguageName(doc.languageId, doc.fileName);
 
     // Filter bad input (mostly for supported languages etc)
@@ -74,7 +75,7 @@ export class CodeParserService {
     if (!isLanguageSupported(lang)) return;
     if (!this.loadedLanguages[lang]) return;
 
-    parseDocument(doc, this.loadedLanguages, lang, this.parser)
+    await parseDocument(doc, this.loadedLanguages, lang, this.parser)
       .then((tree) => {
         return parseFunctions(tree, lang, this.loadedLanguages[lang]);
       })
