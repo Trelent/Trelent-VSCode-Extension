@@ -22,6 +22,7 @@
         "@types/react-dom": "^18.0.9",
         "autoprefixer": "^10.4.13",
         "create-react-app": "^5.0.1",
+        "tailwindcss": "^3.2.4",
         "postcss": "^8.4.19",
         "react-scripts": "^5.0.1",
         "rewire": "^6.0.0"
