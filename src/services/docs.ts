@@ -243,8 +243,11 @@ const isCursorWithinFunction = (
 ): Function | undefined => {
   for (let func of functions) {
     if (
-      cursorPosition.line >= func.range[0][0] &&
-      cursorPosition.line <= func.range[1][0]
+      cursorPosition.line >= func.range[0][0] 
+      && cursorPosition.line <= func.range[1][0] 
+      && cursorPosition.character >= func.range[0][1]
+      && cursorPosition.character <= func.range[1][1]
+
     ) {
       return func;
     }

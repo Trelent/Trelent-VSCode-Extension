@@ -104,9 +104,10 @@ const parseAllFunctions = (
       if (lang == "python") {
         docstringLine = paramsNode.endPosition.row + 1;
         indentation +=
-          bodyNode.startPosition.column - node.startPosition.column;
+          bodyNode.startPosition.column;
       } else {
-        docstringLine = nameNode.startPosition.row - 1;
+        docstringLine = nameNode.startPosition.row;
+        indentation = nameNode.startPosition.column;
       }
       let docstringCol = indentation;
       let docstringPoint = [docstringLine, docstringCol];
