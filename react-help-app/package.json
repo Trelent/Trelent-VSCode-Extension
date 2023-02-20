@@ -1,0 +1,36 @@
+{
+    "publisher": "Trelent",
+    "name": "trelent",
+    "displayName": "Trelent - AI Docstrings on Demand",
+    "description": "We write docstrings for your code automatically!",
+    "version": "1.8.2",
+    "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
+    "icon": "../images/trelent-icon.png",
+    "license": "We use the “Commons Clause” License Condition v1.0 with the MIT License.",
+    "scripts": {
+      "start": "react-scripts start",
+      "build": "build.sh",
+      "eject": "react-scripts eject"
+    },
+    "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "web-vitals": "^3.1.0"
+    },
+    "devDependencies": {
+        "@types/react": "^18.0.25",
+        "@types/react-dom": "^18.0.9",
+        "autoprefixer": "^10.4.13",
+        "create-react-app": "^5.0.1",
+        "postcss": "^8.4.19",
+        "react-scripts": "^5.0.1",
+        "rewire": "^6.0.0"
+    },
+    "browserslist": [
+      ">0.2%",
+      "not dead",
+      "not ie <= 11",
+      "not op_mini all"
+    ]
+  }
+  
