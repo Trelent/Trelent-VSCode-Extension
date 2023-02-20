@@ -52,6 +52,18 @@ export class CodeParserService {
       })
       .then(() => {
         this.parser = new Parser();
+        
+        // Now parse when the active editor changes, a document is saved, or a document is opened
+        vscode.window.onDidChangeActiveTextEditor(
+          (editor: vscode.TextEditor | undefined) => {
+            const doc = editor?.document;
+            if (doc) {
+              this.parse(doc);
+            }
+          }
+        );
+        vscode.workspace.onDidSaveTextDocument(this.parse);
+        vscode.workspace.onDidOpenTextDocument(this.parse);
       });
   }
 
