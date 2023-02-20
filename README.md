@@ -11,6 +11,12 @@ Trelent uses AI to write documentation for your functions instantly.
 
 ![Trelent writing an example docstring](images/trelent-example.gif)
 
+### Data usage
+
+To maintain Trelent as a free product, we will in turn use generated docstrings and stricly-selected source-code
+to improve our service over time. This data is not shared with third parties, and we run rigorous data filtering
+pipelines to ensure that no sensitive information is included in our models.
+
 ### Supported Languages
 
 Trelent currently supports C#, Java, JavaScript and Python docstrings. We default to the standard formats in each language (XML, JavaDoc, JSDoc, and ReST respectively), and for Python we additionally support the Google and Numpy docstring formats. Support for additional languages is on our roadmap.
@@ -42,4 +48,4 @@ _We cannot guaruntee 100% accuracy with the docstrings we write. Always review g
 
 ### Disclaimer
 
-By installing our extension, you agree to our Terms of Use and Privacy Policy. Further, you understand that we may store anonymized source code in order to improve future versions of our service, and you ensure that you have the appropriate rights of ownership for this code. We may also share certain required data with our partners to provide our services (eg. web hosting, payment processing, user accounts). We do not sell your information to any third parties. If you have any questions or concerns, please contact us [by email](mailto:contact@trelent.net). To host locally, please [contact us](mailto:contact@trelent.net)to learn more about our enterprise plan.
+By installing our extension, you agree to our Terms of Use and Privacy Policy. Further, you understand that we will store anonymized source code in order to improve future versions of our service, and you ensure that you have the appropriate rights of ownership for this code. We may also share certain required data with our partners to provide our services (eg. web hosting, payment processing, user accounts). We do not sell your information to any third parties. If you have any questions or concerns, please contact us [by email](mailto:contact@trelent.net). To host locally, please [contact us](mailto:contact@trelent.net) to learn more about our enterprise plan.
