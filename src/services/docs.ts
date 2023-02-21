@@ -241,17 +241,25 @@ const isCursorWithinFunction = (
   cursorPosition: vscode.Position,
   functions: Function[]
 ): Function | undefined => {
+  let validFuncs: Function[] = [];
   for (let func of functions) {
     if (
-      cursorPosition.line >= func.range[0][0] 
-      && cursorPosition.line <= func.range[1][0] 
-      && cursorPosition.character >= func.range[0][1]
-      && cursorPosition.character <= func.range[1][1]
-
+      cursorPosition.line >= func.range[0][0] &&
+      cursorPosition.line <= func.range[1][0]
     ) {
-      return func;
+      validFuncs.push(func);
     }
   }
 
-  return undefined;
+  // Search for the one with the greatest indentation, ie func.range[0][1] is the greatest
+  let greatestIndentation = -1;
+  let greatestIndentationFunc: Function | undefined = undefined;
+  for (let func of validFuncs) {
+    if (func.range[0][1] > greatestIndentation) {
+      greatestIndentation = func.range[0][1];
+      greatestIndentationFunc = func;
+    }
+  }
+
+  return greatestIndentationFunc;
 };
