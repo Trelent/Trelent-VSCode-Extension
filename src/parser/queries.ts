@@ -93,6 +93,7 @@ const csharpDocstringFuncQuery = `[
     (
       (comment)+
     ) @function.docstring
+    .
     (constructor_declaration
       name: (identifier) @function.name
       parameters: (parameter_list) @function.params
@@ -103,6 +104,7 @@ const csharpDocstringFuncQuery = `[
     (
       (comment)+
     ) @function.docstring
+    .
     (method_declaration
       name: (identifier) @function.name
       parameters: (parameter_list) @function.params
@@ -113,6 +115,7 @@ const csharpDocstringFuncQuery = `[
     (
       (comment)+
     ) @function.docstring
+    .
     (local_function_statement
       name: (identifier) @function.name
       parameters: (parameter_list) @function.params
@@ -124,6 +127,7 @@ const csharpDocstringFuncQuery = `[
 const javaDocstringFuncQuery = `[
   (
     (block_comment) @function.docstring
+    .
     (method_declaration
       name: (identifier) @function.name
       parameters: (formal_parameters) @function.params
@@ -134,6 +138,7 @@ const javaDocstringFuncQuery = `[
 const jsDocstringFuncQuery = `[
   (
     (comment) @function.docstring
+    .
     (expression_statement
       (assignment_expression
         left: (member_expression) @function.name
@@ -146,6 +151,7 @@ const jsDocstringFuncQuery = `[
   )
   (
     (comment) @function.docstring
+    .
     (expression_statement
       (assignment_expression
         left: (member_expression) @function.name
@@ -158,6 +164,7 @@ const jsDocstringFuncQuery = `[
   )
   (
   	(comment) @function.docstring
+    .
     (generator_function_declaration
       name: (identifier) @function.name
       parameters: (formal_parameters) @function.params
@@ -166,6 +173,7 @@ const jsDocstringFuncQuery = `[
   )
   (
   	(comment) @function.docstring
+    .
     (expression_statement
       (assignment_expression
         left: (identifier) @function.name
@@ -178,6 +186,7 @@ const jsDocstringFuncQuery = `[
   )
   (
   	(comment) @function.docstring
+    .
     (expression_statement
       (assignment_expression
         left: (identifier) @function.name
@@ -190,6 +199,7 @@ const jsDocstringFuncQuery = `[
   )
   (
   	(comment) @function.docstring
+    .
     (lexical_declaration
       (variable_declarator
         name: (identifier) @function.name
@@ -202,6 +212,7 @@ const jsDocstringFuncQuery = `[
   )
   (
   	(comment) @function.docstring
+    .
     (lexical_declaration
       (variable_declarator
         name: (identifier) @function.name
@@ -214,6 +225,7 @@ const jsDocstringFuncQuery = `[
   )
   (
   	(comment) @function.docstring
+    .
     (function_declaration
         name: (identifier) @function.name
         parameters: (formal_parameters) @function.params

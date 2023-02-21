@@ -44,9 +44,16 @@ export const parseFunctions = async (
     tree
   );
 
+  console.log("Documented Captures:");
+  console.log(documentedFuncsCaptures);
+  console.log("Documented Functions:");
+  console.log(documentedFunctions);
+
   // Merge the two arrays and remove duplicates where necessary
   let mergedFunctions = allFunctions.concat(documentedFunctions);
   mergedFunctions = removeDuplicateFunctions(mergedFunctions);
+
+  
 
   // Return our merged array of functions
   return mergedFunctions;
