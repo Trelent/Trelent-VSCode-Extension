@@ -197,11 +197,13 @@ const parseDocumentedFunctions = (
       let node = defNode;
 
       let start;
-      if (lang === "python") {
+      /*if (lang === "python") {
         start = node.startPosition;
       } else {
         start = docstringNode.startPosition;
-      }
+      }*/
+      //THIS IS A RECOMMENDED CHANGE
+      start = node.startPosition;
       let end = node.endPosition;
       let indentation = 0;
       let name = nameNode.text;
@@ -243,29 +245,16 @@ const parseDocumentedFunctions = (
 
 const removeDuplicateFunctions = (functions: Function[]) => {
   // Keep functions with docstrings over those without
-  functions = functions.sort((func1, func2) => {
-    if (func1.docstring && !func2.docstring) {
-      return -1;
+  let funcs : { [k: string]: Function} = {};
+  functions.forEach(func => {
+    let key : string = func.range.toString();
+    if(!funcs[key] || !funcs[key].docstring){
+      funcs[key] = func;
     }
-    if (!func1.docstring && func2.docstring) {
-      return 1;
     }
-    return 0;
-  });
-
-  // Now remove duplicates based on the function definition
-  let parsedFunctionDefinitions: string[] = [];
-  functions = functions.filter((func) => {
-    if (parsedFunctionDefinitions.includes(func.definition)) {
-      return false;
-    }
-
-    parsedFunctionDefinitions.push(func.definition);
-    return true;
-  });
-
-  return functions;
-};
+  );
+  return Object.values(funcs);
+}
 
 const removeDuplicateNodes = (captures: QueryCapture[]) => {
   let parsedNodeIds: number[] = [];
