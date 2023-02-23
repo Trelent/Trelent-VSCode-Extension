@@ -9,7 +9,7 @@
     "license": "We use the “Commons Clause” License Condition v1.0 with the MIT License.",
     "scripts": {
       "start": "react-scripts start",
-      "build": "build.sh",
+      "build": "./build.sh",
       "eject": "react-scripts eject"
     },
     "dependencies": {
