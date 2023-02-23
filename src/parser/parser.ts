@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
-import { Language,  QueryCapture,  Tree } from "web-tree-sitter";
-import { getAllFuncsQuery} from "./queries";
-import { parsePythonFunctions } from "./langs/pythonparser";
-import { parseCSharpFunctions } from "./langs/csharpparser";
-import { parseJavaFunctions } from "./langs/javaparser";
-import { parseJavaScriptFunctions } from "./langs/javascriptparser";
-import { Function } from "./types"
+import { Language, QueryCapture, Tree } from "web-tree-sitter";
+import { getAllFuncsQuery } from "./queries";
+import { parsePythonFunctions } from "./langs/python";
+import { parseCSharpFunctions } from "./langs/csharp";
+import { parseJavaFunctions } from "./langs/java";
+import { parseJavaScriptFunctions } from "./langs/javascript";
+import { Function } from "./types";
 
 export const parseDocument = async (
   document: vscode.TextDocument,
@@ -33,14 +33,15 @@ export const parseFunctions = async (
   }
 
   let allFuncsCaptures = removeDuplicateNodes(
-    allFuncsQuery.captures(tree.rootNode));
+    allFuncsQuery.captures(tree.rootNode)
+  );
 
   console.log("Lang = " + lang);
   console.log("All Captures:");
   console.log(allFuncsCaptures);
 
   let parser = getParser(lang);
-  if(!parser){
+  if (!parser) {
     console.error(`Could not find parser for lang ${lang}`);
     return [];
   }
@@ -55,15 +56,16 @@ export const parseFunctions = async (
 };
 
 const getParser = (lang: string) => {
-  let parsers: {[key: string]: (captures: QueryCapture[], tree: Tree) => Function[]} = {
+  let parsers: {
+    [key: string]: (captures: QueryCapture[], tree: Tree) => Function[];
+  } = {
     python: parsePythonFunctions,
     java: parseJavaFunctions,
     csharp: parseCSharpFunctions,
-    javascript: parseJavaScriptFunctions
+    javascript: parseJavaScriptFunctions,
   };
   return parsers[lang];
 };
-
 
 const removeDuplicateNodes = (captures: QueryCapture[]) => {
   let parsedNodeIds: number[] = [];
@@ -78,4 +80,3 @@ const removeDuplicateNodes = (captures: QueryCapture[]) => {
 
   return captures;
 };
-
