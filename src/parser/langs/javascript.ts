@@ -55,11 +55,7 @@ export const parseJavaScriptFunctions = (
     let start = defNode.startPosition;
     let end = defNode.endPosition;
 
-    //Determine position where docstring should be inserted
-    let docstringLine = nameNode.startPosition.row;
-    let docstringCol = nameNode.startPosition.column;
-
-    let docstringPoint = [docstringLine, docstringCol];
+    let docstringPoint = [start.row, start.column];
 
     //Define the fields of the function
     func.body = bodyNode.text;
