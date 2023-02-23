@@ -6,15 +6,26 @@ import { getParams, getTextBetweenPoints } from "./util";
 
 export const parseDocument = async (
   document: vscode.TextDocument,
-  loadedLanguages: { [key: string]: Language },
-  language: string,
+  language: Language,
   parser: any
 ) => {
   // Set the parser language
-  parser.setLanguage(loadedLanguages[language]);
+  parser.setLanguage(language);
 
   // Parse the document
   return parser.parse(document.getText()) as Tree;
+};
+
+export const parseText = async (
+  text: string,
+  language: Language,
+  parser: any
+) => {
+  // Set the parser language
+  parser.setLanguage(language);
+
+  //Parse the document
+  return parser.parse(text) as Tree;
 };
 
 export const parseFunctions = async (

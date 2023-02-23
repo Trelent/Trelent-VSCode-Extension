@@ -179,6 +179,7 @@
     "vscode-test": "^1.5.2"
   },
   "dependencies": {
+    "@vscode/test-electron": "^2.2.3",
     "axios": "^0.22.0",
     "mixpanel-browser": "^2.45.0",
     "polka": "^0.5.2",
