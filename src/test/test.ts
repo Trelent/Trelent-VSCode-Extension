@@ -1,11 +1,11 @@
-var assert = require('assert');
+import 'mocha'
 
-let testModules = {
+let testModules: {[key: string]: string} = {
     parser: "./parser/parser-test"
 }
 
 
-describe("top", function(){
+describe("tests", function(){
     Object.keys(testModules).forEach((testName) => {
         describe(testName, function() {
             require(testModules[testName]);
@@ -16,7 +16,7 @@ describe("top", function(){
     })
 });
 
-function importTest(name, path) {
+function importTest(name: string, path: string) {
     describe(name, function () {
         require(path);
     });

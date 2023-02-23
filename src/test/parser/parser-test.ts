@@ -1,5 +1,6 @@
+import 'mocha'
 
-let parserTests = {
+let parserTests: {[key: string]: string} = {
     java: "./langs/java-test",
     python: "./langs/python-test",
     csharp: "./langs/csharp-test",
