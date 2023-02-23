@@ -36,20 +36,15 @@ export const parseFunctions = async (
     allFuncsQuery.captures(tree.rootNode)
   );
 
-  console.log("Lang = " + lang);
-  console.log("All Captures:");
-  console.log(allFuncsCaptures);
-
+  //Get the parser for the language
   let parser = getParser(lang);
+  
   if (!parser) {
     console.error(`Could not find parser for lang ${lang}`);
     return [];
   }
 
   let allFunctions = parser(allFuncsCaptures, tree);
-
-  console.log("All Functions:");
-  console.log(allFunctions);
 
   // Return our merged array of functions
   return allFunctions;

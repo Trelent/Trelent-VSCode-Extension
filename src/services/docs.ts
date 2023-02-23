@@ -241,8 +241,6 @@ const isCursorWithinFunction = (
   cursorPosition: vscode.Position,
   functions: Function[]
 ): Function | undefined => {
-  console.log("Cursor Position:");
-  console.log(cursorPosition);
   let validFuncs: Function[] = [];
   for (let func of functions) {
     if (
