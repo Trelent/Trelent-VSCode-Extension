@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import { Language,  QueryCapture,  Tree } from "web-tree-sitter";
 import { getAllFuncsQuery} from "./queries";
-import { parsePythonFunctions } from "./parsers/pythonparser";
-import { parseCSharpFunctions } from "./parsers/csharpparser";
-import { parseJavaFunctions } from "./parsers/javaparser";
-import { parseJavaScriptFunctions } from "./parsers/javascriptparser";
+import { parsePythonFunctions } from "./langs/pythonparser";
+import { parseCSharpFunctions } from "./langs/csharpparser";
+import { parseJavaFunctions } from "./langs/javaparser";
+import { parseJavaScriptFunctions } from "./langs/javascriptparser";
 import { Function } from "./types"
 
 export const parseDocument = async (
