@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { Language, QueryCapture, SyntaxNode, Tree } from "web-tree-sitter";
-import { getAllFuncsQuery, getDocumentedFuncsQuery } from "./queries";
+import { getAllFuncsQuery} from "./queries";
 import { Function } from "./types";
 import { getParams, getTextBetweenPoints } from "./util";
 
@@ -22,34 +22,23 @@ export const parseFunctions = async (
   lang: string,
   TSLanguage: Language
 ) => {
-  let documentedFuncsQuery = getDocumentedFuncsQuery(lang, TSLanguage);
   let allFuncsQuery = getAllFuncsQuery(lang, TSLanguage);
 
-  if (!documentedFuncsQuery || !allFuncsQuery) {
+  if (!allFuncsQuery) {
     console.error("Query not found for language", lang);
     return [];
   }
 
-  let documentedFuncsCaptures = removeDuplicateNodes(
-    documentedFuncsQuery.captures(tree.rootNode)
-  );
   let allFuncsCaptures = removeDuplicateNodes(
     allFuncsQuery.captures(tree.rootNode)
   );
 
-  let allFunctions = parseAllFunctions(allFuncsCaptures, lang, tree);
-  let documentedFunctions = parseDocumentedFunctions(
-    documentedFuncsCaptures,
-    lang,
-    tree
-  );
+  console.log(allFuncsCaptures);
 
-  // Merge the two arrays and remove duplicates where necessary
-  let mergedFunctions = allFunctions.concat(documentedFunctions);
-  mergedFunctions = removeDuplicateFunctions(mergedFunctions);
+  let allFunctions = parseAllFunctions(allFuncsCaptures, lang, tree);
 
   // Return our merged array of functions
-  return mergedFunctions;
+  return allFunctions;
 };
 
 const parseAllFunctions = (
@@ -242,19 +231,6 @@ const parseDocumentedFunctions = (
 
   return documentedFunctions;
 };
-
-const removeDuplicateFunctions = (functions: Function[]) => {
-  // Keep functions with docstrings over those without
-  let funcs : { [k: string]: Function} = {};
-  functions.forEach(func => {
-    let key : string = func.range.toString();
-    if(!funcs[key] || !funcs[key].docstring){
-      funcs[key] = func;
-    }
-    }
-  );
-  return Object.values(funcs);
-}
 
 const removeDuplicateNodes = (captures: QueryCapture[]) => {
   let parsedNodeIds: number[] = [];

@@ -130,7 +130,7 @@ const pythonFuncQuery = `
   parameters: (parameters) @function.params
   body: (block
     (expression_statement
-        (string) @function.docstrings
+        (string) @function.docstring
       )*
   ) @function.body
 ) @function.def
