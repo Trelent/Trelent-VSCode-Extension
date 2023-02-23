@@ -244,8 +244,9 @@ const isCursorWithinFunction = (
   let validFuncs: Function[] = [];
   for (let func of functions) {
     if (
-      cursorPosition.line >= func.range[0][0] &&
-      cursorPosition.line <= func.range[1][0]
+      cursorPosition.line >= func.range[0][0] 
+      && cursorPosition.line <= func.range[1][0] 
+
     ) {
       validFuncs.push(func);
     }
