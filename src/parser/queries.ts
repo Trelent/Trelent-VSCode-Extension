@@ -129,6 +129,7 @@ const pythonFuncQuery = `
   name: (identifier) @function.name
   parameters: (parameters) @function.params
   body: (block
+    .
     (expression_statement
         (string) @function.docstring
       )?
