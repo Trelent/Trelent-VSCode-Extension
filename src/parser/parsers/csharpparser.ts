@@ -3,16 +3,17 @@ import { QueryGroup, Function } from "../types";
 import { getTextBetweenPoints, getParams } from "../util"
 
 /*
-*   Overall structure of Python captures
-*   
+*   Overall structure of C# captures
+*
+*    (@function.docstrings) any amount
 *    @function.def
 *    @function.name
 *    @function.params
 *    @function.body
-*    @function.docstring
+*    
 */
 
-export const parsePythonFunctions = (
+export const parseCSharpFunctions = (
     captures: QueryCapture[],
     tree: Tree
 ) => {
@@ -23,18 +24,15 @@ export const parsePythonFunctions = (
 
     queryGroups.forEach(queryGroup => {
 
-    let defNode, nameNode, paramsNode, bodyNode, docNode;
+    let defNode, nameNode, paramsNode, bodyNode, docNodes;
 
     //Grab the 4 required nodes
     defNode = queryGroup.defNode;
     nameNode = queryGroup.nameNode;
     paramsNode = queryGroup.paramsNode;
     bodyNode = queryGroup.bodyNode;
-    
-    //If a docNode exists, grab it
-    if(queryGroup.docNodes.length > 0){
-        docNode = queryGroup.docNodes[0];
-    }
+    docNodes = queryGroup.docNodes;
+
     let func: Function = {
         body: "",
         definition: "",
@@ -54,8 +52,8 @@ export const parsePythonFunctions = (
     let end = defNode.endPosition;
 
     //Determine position where docstring should be inserted
-    let docstringLine = paramsNode.endPosition.row + 1;
-    let docstringCol = bodyNode.startPosition.column;
+    let docstringLine = nameNode.startPosition.row;
+    let docstringCol = nameNode.startPosition.column;
 
     let docstringPoint = [docstringLine, docstringCol];
 
@@ -69,8 +67,14 @@ export const parsePythonFunctions = (
     );
     
     //if there is a docNode present, populate the docstring field
-    if(docNode){
-        func.docstring = docNode.text;
+    if(docNodes.length > 0){
+        let docText = "";
+        docNodes.forEach(docNode => {
+            docText += docNode.text + "\n";
+        });
+        //Chop off trailing newline
+        docText = docText.substring(0, docText.length - 2);
+        func.docstring = docText;
     }
 
     func.docstring_point = docstringPoint;
@@ -95,10 +99,17 @@ export const parsePythonFunctions = (
 const groupFunction = (captures: QueryCapture[]): QueryGroup[] => {
     let queryGroups: QueryGroup[] = [];
     for(let i = 0; i<captures.length; i++){
+
+        let docNodes: SyntaxNode[] = [];
+        while(i < captures.length && captures[i].name === "function.docstrings"){
+            docNodes.push(captures[i++].node);
+        }
+
         if(captures[i].name !== "function.def"){
             continue;
         }
-        let defNode, nameNode, paramsNode, bodyNode, docNode: SyntaxNode[] = [];
+
+        let defNode, nameNode, paramsNode, bodyNode;
 
         //Init base nodes
         captures.slice(i, i+4).forEach(capture => {
@@ -127,17 +138,12 @@ const groupFunction = (captures: QueryCapture[]): QueryGroup[] => {
             continue;
         }
 
-        //Grab documentation node if it exists
-        if(i+4 < captures.length && captures[i+4].name === "function.docstring"){
-            docNode = [captures[i+4].node];
-        }
-
         let queryGroup: QueryGroup = {
             defNode: defNode.node,
             nameNode: nameNode.node,
             paramsNode: paramsNode.node,
             bodyNode: bodyNode.node,
-            docNodes: docNode
+            docNodes: docNodes
         };
 
         queryGroups.push(queryGroup);

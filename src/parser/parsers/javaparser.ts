@@ -3,16 +3,17 @@ import { QueryGroup, Function } from "../types";
 import { getTextBetweenPoints, getParams } from "../util"
 
 /*
-*   Overall structure of Python captures
-*   
+*   Overall structure of Java captures
+*
+*    @function.docstring
 *    @function.def
 *    @function.name
 *    @function.params
 *    @function.body
-*    @function.docstring
+*    
 */
 
-export const parsePythonFunctions = (
+export const parseJavaFunctions = (
     captures: QueryCapture[],
     tree: Tree
 ) => {
@@ -54,8 +55,8 @@ export const parsePythonFunctions = (
     let end = defNode.endPosition;
 
     //Determine position where docstring should be inserted
-    let docstringLine = paramsNode.endPosition.row + 1;
-    let docstringCol = bodyNode.startPosition.column;
+    let docstringLine = nameNode.startPosition.row;
+    let docstringCol = nameNode.startPosition.column;
 
     let docstringPoint = [docstringLine, docstringCol];
 
@@ -126,10 +127,10 @@ const groupFunction = (captures: QueryCapture[]): QueryGroup[] => {
             console.error(`Missing node type (defNode: ${!!defNode}, nameNode: ${!!nameNode}, paramsNode: ${!!paramsNode}, bodyNode: ${!!bodyNode})`);
             continue;
         }
-
+        
         //Grab documentation node if it exists
-        if(i+4 < captures.length && captures[i+4].name === "function.docstring"){
-            docNode = [captures[i+4].node];
+        if(i-1 >= 0 && captures[i-1].name === "function.docstring"){
+            docNode = [captures[i-1].node];
         }
 
         let queryGroup: QueryGroup = {

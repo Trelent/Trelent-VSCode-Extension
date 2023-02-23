@@ -7,7 +7,7 @@ export const getAllFuncsQuery = (lang: string, TSLanguage: Language) => {
 
 const csharpFuncQuery = `
 (
-  (comment)* @function.comments
+  (comment)* @function.docstrings
   .
   (constructor_declaration
     name: (identifier) @function.name
@@ -15,7 +15,7 @@ const csharpFuncQuery = `
     body: (block) @function.body) @function.def
 )
 (
-  (comment)* @function.comments
+  (comment)* @function.docstrings
   .
   (method_declaration
     name: (identifier) @function.name
@@ -23,7 +23,7 @@ const csharpFuncQuery = `
     body: (block) @function.body) @function.def
 )
 (
-  (comment)* @function.comments
+  (comment)* @function.docstrings
   .
   (local_function_statement
     name: (identifier) @function.name
@@ -34,7 +34,7 @@ const csharpFuncQuery = `
 `;
 
 const javaFuncQuery = `(
-  (block_comment)* @function.docstring
+  (block_comment)? @function.docstring
   .
   (method_declaration
     name: (identifier) @function.name
@@ -43,7 +43,7 @@ const javaFuncQuery = `(
   ) @function.def
 )
 (
-  (block_comment)* @function.docstring
+  (block_comment)? @function.docstring
   .
   (constructor_declaration
     name: (identifier) @function.name
@@ -54,7 +54,7 @@ const javaFuncQuery = `(
 
 const jsFuncQuery = `
 (
-  (comment)* @function.docstrings
+  (comment)? @function.docstring
   .
   (function_declaration
     name: (identifier) @function.name
@@ -63,7 +63,7 @@ const jsFuncQuery = `
   ) @function.def 
 )
 (
-  (comment)* @function.docstrings
+  (comment)? @function.docstring
   .
   (generator_function_declaration
     name: (identifier) @function.name
@@ -72,7 +72,7 @@ const jsFuncQuery = `
   ) @function.def
 )
 (
-  (comment)* @function.docstrings
+  (comment)? @function.docstring
   .
   (lexical_declaration
     (variable_declarator
@@ -91,7 +91,7 @@ const jsFuncQuery = `
   ) @function.def
 )
 (
-  (comment)* @function.docstrings
+  (comment)? @function.docstring
   .
   (labeled_statement
     label: (statement_identifier) @function.name
@@ -104,7 +104,7 @@ const jsFuncQuery = `
   ) @function.def
 )
 (
-  (comment)* @function.docstrings
+  (comment)? @function.docstring
   .
   (pair
     key: (property_identifier) @function.name
@@ -115,7 +115,7 @@ const jsFuncQuery = `
   ) @function.def
 )
 (
-  (comment)* @function.docstrings
+  (comment)? @function.docstring
   .
   (method_definition
     name: (property_identifier) @function.name
