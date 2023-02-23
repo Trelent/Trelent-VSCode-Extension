@@ -131,7 +131,7 @@ const pythonFuncQuery = `
   body: (block
     (expression_statement
         (string) @function.docstring
-      )*
+      )?
   ) @function.body
 ) @function.def
 `;

@@ -1,8 +1,11 @@
 import * as vscode from "vscode";
-import { Language, QueryCapture, SyntaxNode, Tree } from "web-tree-sitter";
+import { Language,  QueryCapture,  Tree } from "web-tree-sitter";
 import { getAllFuncsQuery} from "./queries";
-import { Function } from "./types";
-import { getParams, getTextBetweenPoints } from "./util";
+import { parsePythonFunctions } from "./parsers/pythonparser";
+import { parseCSharpFunctions } from "./parsers/csharpparser";
+import { parseJavaFunctions } from "./parsers/javaparser";
+import { parseJavaScriptFunctions } from "./parsers/javascriptparser";
+import { Function } from "./types"
 
 export const parseDocument = async (
   document: vscode.TextDocument,
@@ -30,207 +33,37 @@ export const parseFunctions = async (
   }
 
   let allFuncsCaptures = removeDuplicateNodes(
-    allFuncsQuery.captures(tree.rootNode)
-  );
+    allFuncsQuery.captures(tree.rootNode));
 
+  console.log("Lang = " + lang);
+  console.log("All Captures:");
   console.log(allFuncsCaptures);
 
-  let allFunctions = parseAllFunctions(allFuncsCaptures, lang, tree);
+  let parser = getParser(lang);
+  if(!parser){
+    console.error(`Could not find parser for lang ${lang}`);
+    return [];
+  }
+
+  let allFunctions = parser(allFuncsCaptures, tree);
+
+  console.log("All Functions:");
+  console.log(allFunctions);
 
   // Return our merged array of functions
   return allFunctions;
 };
 
-const parseAllFunctions = (
-  captures: QueryCapture[],
-  lang: string,
-  tree: Tree
-) => {
-  const functions: Function[] = [];
-
-  for (let i = 0; i < captures.length; i++) {
-    // We hit a function definition, as we have 4 named
-    // captures for every query in every supported language.
-    if (i % 4 == 0) {
-      let func: Function = {
-        body: "",
-        definition: "",
-        docstring: undefined,
-        docstring_point: undefined,
-        name: "",
-        params: [],
-        range: [
-          [0, 0],
-          [0, 0],
-        ],
-        text: "",
-      };
-      let node = captures[i].node;
-      let nameNode, paramsNode, bodyNode;
-
-      if (node.namedChildren.length == 1) {
-        // JS arrow functions... ugh
-        let childNode = node.namedChildren[0];
-        nameNode = childNode.namedChildren[0];
-
-        // go deeper lol
-        let arrowNode = childNode.namedChildren[1];
-        paramsNode = arrowNode.namedChildren[0];
-        bodyNode = arrowNode.namedChildren[1];
-      } else {
-        nameNode = node.namedChildren[0];
-        paramsNode = node.namedChildren[1];
-        bodyNode = node.namedChildren[2];
-      }
-
-      let start = node.startPosition;
-      let end = node.endPosition;
-      let indentation = 0;
-      let name = nameNode.text;
-      let paramsText = paramsNode.text;
-
-      let docstringLine = 0;
-      if (lang == "python") {
-        docstringLine = paramsNode.endPosition.row + 1;
-        indentation +=
-          bodyNode.startPosition.column;
-      } else {
-        docstringLine = nameNode.startPosition.row;
-        indentation = nameNode.startPosition.column;
-      }
-      let docstringCol = indentation;
-      let docstringPoint = [docstringLine, docstringCol];
-
-      func.body = bodyNode.text;
-      func.definition = getTextBetweenPoints(
-        tree.rootNode.text,
-        node.startPosition,
-        bodyNode.startPosition
-      );
-      func.docstring_point = docstringPoint;
-      func.name = name;
-      func.params = getParams(paramsText);
-      func.range = [
-        [start.row, start.column],
-        [end.row, end.column],
-      ];
-      func.text = node.text;
-
-      functions.push(func);
-    }
-  }
-
-  return functions;
+const getParser = (lang: string) => {
+  let parsers: {[key: string]: (captures: QueryCapture[], tree: Tree) => Function[]} = {
+    python: parsePythonFunctions,
+    java: parseJavaFunctions,
+    csharp: parseCSharpFunctions,
+    javascript: parseJavaScriptFunctions
+  };
+  return parsers[lang];
 };
 
-const parseDocumentedFunctions = (
-  captures: QueryCapture[],
-  lang: string,
-  tree: Tree
-) => {
-  const documentedFunctions: Function[] = [];
-
-  for (let i = 0; i < captures.length; i++) {
-    if (i % 5 == 0) {
-      let defNode: SyntaxNode | undefined;
-      let nameNode: SyntaxNode | undefined;
-      let paramsNode: SyntaxNode | undefined;
-      let bodyNode: SyntaxNode | undefined;
-      let docstringNode: SyntaxNode | undefined;
-
-      captures.slice(i, i + 5).forEach((capture) => {
-        if (capture.name == "function.def") {
-          defNode = capture.node;
-        } else if (capture.name == "function.name") {
-          nameNode = capture.node;
-        } else if (capture.name == "function.params") {
-          paramsNode = capture.node;
-        } else if (capture.name == "function.body") {
-          bodyNode = capture.node;
-        } else if (capture.name == "function.docstring") {
-          docstringNode = capture.node;
-        } else {
-          console.error("TRELENT: Unknown capture name", capture.name);
-        }
-      });
-
-      // if any of those nodes are undefined, skip this function
-      if (!defNode || !nameNode || !paramsNode || !bodyNode || !docstringNode) {
-        console.warn(
-          "TRELENT: Missing node in documented function.. skipping:",
-          {
-            defNode,
-            nameNode,
-            paramsNode,
-            bodyNode,
-            docstringNode,
-          }
-        );
-
-        continue;
-      }
-
-      let func: Function = {
-        body: "",
-        definition: "",
-        docstring: undefined,
-        docstring_point: undefined,
-        name: "",
-        params: [],
-        range: [
-          [0, 0],
-          [0, 0],
-        ],
-        text: "",
-      };
-      let node = defNode;
-
-      let start;
-      /*if (lang === "python") {
-        start = node.startPosition;
-      } else {
-        start = docstringNode.startPosition;
-      }*/
-      //THIS IS A RECOMMENDED CHANGE
-      start = node.startPosition;
-      let end = node.endPosition;
-      let indentation = 0;
-      let name = nameNode.text;
-      let paramsText = paramsNode.text;
-
-      let docstringLine = 0;
-      if (lang == "python") {
-        docstringLine = paramsNode.endPosition.row + 1;
-        indentation +=
-          bodyNode.startPosition.column - node.startPosition.column;
-      } else {
-        docstringLine = nameNode.startPosition.row - 1;
-      }
-      let docstringCol = indentation;
-      let docstringPoint = [docstringLine, docstringCol];
-
-      func.body = bodyNode.text;
-      func.definition = getTextBetweenPoints(
-        tree.rootNode.text,
-        node.startPosition,
-        bodyNode.startPosition
-      );
-      func.docstring_point = docstringPoint;
-      func.docstring = docstringNode.text;
-      func.name = name;
-      func.params = getParams(paramsText);
-      func.range = [
-        [start.row, start.column],
-        [end.row, end.column],
-      ];
-      func.text = node.text;
-
-      documentedFunctions.push(func);
-    }
-  }
-
-  return documentedFunctions;
-};
 
 const removeDuplicateNodes = (captures: QueryCapture[]) => {
   let parsedNodeIds: number[] = [];
@@ -245,3 +78,4 @@ const removeDuplicateNodes = (captures: QueryCapture[]) => {
 
   return captures;
 };
+

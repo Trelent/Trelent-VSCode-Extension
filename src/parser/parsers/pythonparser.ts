@@ -15,7 +15,7 @@ import { getTextBetweenPoints, getParams } from "../util"
 export const parsePythonFunctions = (
     captures: QueryCapture[],
     tree: Tree
-) => {
+): Function[] => {
     const functions: Function[] = [];
 
     //Get query groups from captures
@@ -23,7 +23,7 @@ export const parsePythonFunctions = (
 
     queryGroups.forEach(queryGroup => {
 
-    let defNode, nameNode, paramsNode, bodyNode, docNode;
+    let defNode: SyntaxNode, nameNode: SyntaxNode, paramsNode: SyntaxNode, bodyNode: SyntaxNode, docNode: SyntaxNode | undefined;
 
     //Grab the 4 required nodes
     defNode = queryGroup.defNode;
@@ -98,7 +98,12 @@ const groupFunction = (captures: QueryCapture[]): QueryGroup[] => {
         if(captures[i].name !== "function.def"){
             continue;
         }
-        let defNode, nameNode, paramsNode, bodyNode, docNode: SyntaxNode[] = [];
+
+        let defNode: QueryCapture | undefined
+        let nameNode: QueryCapture | undefined
+        let paramsNode: QueryCapture | undefined 
+        let bodyNode: QueryCapture | undefined
+        let docNode: SyntaxNode[] = [];
 
         //Init base nodes
         captures.slice(i, i+4).forEach(capture => {
