@@ -80,8 +80,8 @@ export const parseJavaFunctions = (
     func.params = getParams(paramsNode.text);
 
     func.range = [
-        [start.row+1, start.column+1],
-        [end.row+1, end.column]
+        [start.row, start.column],
+        [end.row, end.column]
     ];
 
     func.text = defNode.text;

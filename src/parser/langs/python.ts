@@ -81,7 +81,7 @@ export const parsePythonFunctions = (
 
     func.range = [
         [start.row, start.column],
-        [end.row+1, end.column]
+        [end.row, end.column]
     ];
 
     func.text = defNode.text;
