@@ -50,7 +50,7 @@ export const parseCSharpFunctions = (
 
     //Define bounds of the function
     let start = defNode.startPosition;
-    let end = defNode.endPosition;
+    let end = bodyNode.endPosition;
 
     let docstringPoint = [start.row, start.column];
 
@@ -81,8 +81,8 @@ export const parseCSharpFunctions = (
     func.params = getParams(paramsNode.text);
 
     func.range = [
-        [start.row, start.column],
-        [end.row, end.column]
+        [start.row+1, start.column+1],
+        [end.row+1, end.column]
     ];
 
     func.text = defNode.text;
