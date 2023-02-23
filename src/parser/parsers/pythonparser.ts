@@ -1,5 +1,6 @@
 import { QueryCapture, SyntaxNode, Tree } from "web-tree-sitter";
 import { QueryGroup, Function } from "../types";
+import { getTextBetweenPoints, getParams } from "../util"
 
 /*
 *   Overall structure of Python captures
@@ -19,19 +20,71 @@ export const parsePythonFunctions = (
 
     const queryGroups: QueryGroup[] = groupFunction(captures);
 
-    let func: Function = {
-        body: "",
-        definition: "",
-        docstring: undefined,
-        docstring_point: undefined,
-        name: "",
-        params: [],
-        range: [
-          [0, 0],
-          [0, 0],
-        ],
-        text: "",
-      };
+    
+
+      queryGroups.forEach(queryGroup => {
+
+        let defNode, nameNode, paramsNode, bodyNode, docNode;
+
+        defNode = queryGroup.defNode;
+        nameNode = queryGroup.nameNode;
+        paramsNode = queryGroup.paramsNode;
+        bodyNode = queryGroup.bodyNode;
+
+        if(queryGroup.docNodes.length > 0){
+            docNode = queryGroup.docNodes[0];
+        }
+        let func: Function = {
+            body: "",
+            definition: "",
+            docstring: undefined,
+            docstring_point: undefined,
+            name: "",
+            params: [],
+            range: [
+              [0, 0],
+              [0, 0],
+            ],
+            text: "",
+          };
+
+        let start = defNode.startPosition;
+        let end = defNode.endPosition;
+
+        let docstringLine = bodyNode.endPosition.row + 1;
+        let docstringCol = bodyNode.startPosition.column;
+
+        let docstringPoint = [docstringLine, docstringCol];
+
+        func.body = bodyNode.text;
+
+        func.definition = func.definition = getTextBetweenPoints(
+            tree.rootNode.text,
+            defNode.startPosition,
+            bodyNode.startPosition
+        );
+
+        if(docNode){
+            func.docstring = docNode.text;
+        }
+
+        func.docstring_point = docstringPoint;
+
+        func.name = nameNode.text;
+
+        func.params = getParams(paramsNode.text);
+
+        func.range = [
+            [start.row, start.column],
+            [end.row, end.column]
+        ];
+
+        func.text = defNode.text;
+
+        functions.push(func);
+      });
+
+      return functions;
 }
 
 const groupFunction = (captures: QueryCapture[]): QueryGroup[] => {
@@ -77,7 +130,9 @@ const groupFunction = (captures: QueryCapture[]): QueryGroup[] => {
             paramsNode: paramsNode.node,
             bodyNode: bodyNode.node,
             docNodes: docNode
-        }
+        };
+
+        queryGroups.push(queryGroup);
 
     }
     return queryGroups;
