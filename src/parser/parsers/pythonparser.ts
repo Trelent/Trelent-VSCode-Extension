@@ -18,73 +18,78 @@ export const parsePythonFunctions = (
 ) => {
     const functions: Function[] = [];
 
+    //Get query groups from captures
     const queryGroups: QueryGroup[] = groupFunction(captures);
 
+    queryGroups.forEach(queryGroup => {
+
+    let defNode, nameNode, paramsNode, bodyNode, docNode;
+
+    //Grab the 4 required nodes
+    defNode = queryGroup.defNode;
+    nameNode = queryGroup.nameNode;
+    paramsNode = queryGroup.paramsNode;
+    bodyNode = queryGroup.bodyNode;
     
+    //If a docNode exists, grab it
+    if(queryGroup.docNodes.length > 0){
+        docNode = queryGroup.docNodes[0];
+    }
+    let func: Function = {
+        body: "",
+        definition: "",
+        docstring: undefined,
+        docstring_point: undefined,
+        name: "",
+        params: [],
+        range: [
+            [0, 0],
+            [0, 0],
+        ],
+        text: "",
+    };
 
-      queryGroups.forEach(queryGroup => {
+    //Define bounds of the function
+    let start = defNode.startPosition;
+    let end = defNode.endPosition;
 
-        let defNode, nameNode, paramsNode, bodyNode, docNode;
+    //Determine position where docstring should be inserted
+    let docstringLine = bodyNode.endPosition.row + 1;
+    let docstringCol = bodyNode.startPosition.column;
 
-        defNode = queryGroup.defNode;
-        nameNode = queryGroup.nameNode;
-        paramsNode = queryGroup.paramsNode;
-        bodyNode = queryGroup.bodyNode;
+    let docstringPoint = [docstringLine, docstringCol];
 
-        if(queryGroup.docNodes.length > 0){
-            docNode = queryGroup.docNodes[0];
-        }
-        let func: Function = {
-            body: "",
-            definition: "",
-            docstring: undefined,
-            docstring_point: undefined,
-            name: "",
-            params: [],
-            range: [
-              [0, 0],
-              [0, 0],
-            ],
-            text: "",
-          };
+    //Define the fields of the function
+    func.body = bodyNode.text;
 
-        let start = defNode.startPosition;
-        let end = defNode.endPosition;
+    func.definition = func.definition = getTextBetweenPoints(
+        tree.rootNode.text,
+        defNode.startPosition,
+        bodyNode.startPosition
+    );
+    
+    //if there is a docNode present, populate the docstring field
+    if(docNode){
+        func.docstring = docNode.text;
+    }
 
-        let docstringLine = bodyNode.endPosition.row + 1;
-        let docstringCol = bodyNode.startPosition.column;
+    func.docstring_point = docstringPoint;
 
-        let docstringPoint = [docstringLine, docstringCol];
+    func.name = nameNode.text;
 
-        func.body = bodyNode.text;
+    func.params = getParams(paramsNode.text);
 
-        func.definition = func.definition = getTextBetweenPoints(
-            tree.rootNode.text,
-            defNode.startPosition,
-            bodyNode.startPosition
-        );
+    func.range = [
+        [start.row, start.column],
+        [end.row, end.column]
+    ];
 
-        if(docNode){
-            func.docstring = docNode.text;
-        }
+    func.text = defNode.text;
 
-        func.docstring_point = docstringPoint;
+    functions.push(func);
+    });
 
-        func.name = nameNode.text;
-
-        func.params = getParams(paramsNode.text);
-
-        func.range = [
-            [start.row, start.column],
-            [end.row, end.column]
-        ];
-
-        func.text = defNode.text;
-
-        functions.push(func);
-      });
-
-      return functions;
+    return functions;
 }
 
 const groupFunction = (captures: QueryCapture[]): QueryGroup[] => {
@@ -115,10 +120,13 @@ const groupFunction = (captures: QueryCapture[]): QueryGroup[] => {
                     break;
             }
         });
+        
+        //verify all necessary nodes exist
         if(!(defNode && nameNode && paramsNode && bodyNode)){
             console.error(`Missing node type (defNode: ${!!defNode}, nameNode: ${!!nameNode}, paramsNode: ${!!paramsNode}, bodyNode: ${!!bodyNode})`);
             continue;
         }
+        
         //Grab documentation node if it exists
         if(i+4 < captures.length && captures[i+4].name === "function.docstring"){
             docNode = [captures[i+4].node];
