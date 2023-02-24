@@ -56,6 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Dispose of our command registration
   context.subscriptions.push(helpCmd);
+  (global as any).testExtensionContext = context;
+
 }
 
 // this method is called when your extension is deactivated

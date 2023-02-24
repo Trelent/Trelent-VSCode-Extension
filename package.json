@@ -142,9 +142,9 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "tsc -p tsconfig.extension.json && cp -a ./grammars/. ./build/src/grammars/ && cp node_modules/web-tree-sitter/tree-sitter.wasm build/src/grammars/",
+    "vscode:prepublish": "tsc -p tsconfig.extension.json && cp -a ./grammars/. ./build/src/grammars/ && cp node_modules/web-tree-sitter/tree-sitter.wasm build/src/grammars/ && cp -a ./src/test/suite/parser/parser-test-files/. ./build/src/test/suite/parser/parser-test-files/",
     "start": "react-scripts start",
-    "build": "tsc -p tsconfig.extension.json && cp -a ./grammars/. ./build/src/grammars/ && cp node_modules/web-tree-sitter/tree-sitter.wasm build/src/grammars/",
+    "build": "tsc -p tsconfig.extension.json && cp -a ./grammars/. ./build/src/grammars/ && cp node_modules/web-tree-sitter/tree-sitter.wasm build/src/grammars/ && cp -a ./src/test/suite/parser/parser-test-files/. ./build/src/test/suite/parser/parser-test-files/",
     "eject": "react-scripts eject"
   },
   "devDependencies": {
