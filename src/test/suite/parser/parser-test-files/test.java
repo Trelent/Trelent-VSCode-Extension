@@ -21,4 +21,12 @@ public class test {
 
     }
 
+    public testjava(){
+
+    }
+
+    public void test(){
+        
+    }
+
 }

@@ -10,8 +10,6 @@ const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
     path.join("grammars", "tree-sitter-" + language + ".wasm")
   );
 
-  console.log(grammarPath);
-
   return grammarPath;
 };
 

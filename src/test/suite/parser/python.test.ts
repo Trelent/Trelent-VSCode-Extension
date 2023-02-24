@@ -8,7 +8,7 @@ import { CodeParserService } from '../../../services/codeParser';
 suite('Python parser tests', () => {
     let extensionContext: ExtensionContext;
     let codeParserService: CodeParserService;
-    let codeFile: string
+    let codeFile: string;
     suiteSetup(async () => {
         // Trigger extension activation and grab the context as some tests depend on it
         await extensions.getExtension('Trelent.trelent')?.activate();
@@ -21,12 +21,20 @@ suite('Python parser tests', () => {
         codeFile = fs.readFileSync(filePath,'utf8');
     });
 
-    test('Python Parsing documented functions correctly', () => {
-        codeParserService.parseText(codeFile, 'python')
-        .then(() => {
+    test('Python Parsing documented functions correctly', async () => {
+        codeParserService.parseText(codeFile, 'python').then(async () => {
             let functions = codeParserService.getFunctions();
             assert.strictEqual(functions.length, 2);
-        });
+            });
+
+    });
+
+    test('Python reporting correct amount of documented & undocumented functions', async () => {
+        codeParserService.parseText(codeFile, 'python').then(async () => {
+            let functions = codeParserService.getFunctions();
+            assert.notStrictEqual(functions[0].docstring, undefined);
+            assert.strictEqual(functions[1].docstring, undefined);
+    });
 
     });
 });
