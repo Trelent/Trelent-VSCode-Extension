@@ -93,19 +93,6 @@ const jsFuncQuery = `
 (
   (comment)? @function.docstring
   .
-  (labeled_statement
-    label: (statement_identifier) @function.name
-    (expression_statement
-      (function
-        parameters: (formal_parameters) @function.params
-        body: (statement_block) @function.body
-      )
-    )
-  ) @function.def
-)
-(
-  (comment)? @function.docstring
-  .
   (pair
     key: (property_identifier) @function.name
     value: (function

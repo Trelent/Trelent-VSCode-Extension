@@ -21,7 +21,6 @@ export class TelemetryService {
   constructor(mixpanelToken: string) {
     // Retrieve current tracking level
     this.trackLevel = getTelemetrySettings();
-    console.log("Trelent allowed tracking level: " + this.trackLevel);
 
     // Initialize mixpanel
     mixpanel.init(mixpanelToken, { debug: true });

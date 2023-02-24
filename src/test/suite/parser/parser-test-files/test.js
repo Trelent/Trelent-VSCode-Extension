@@ -77,3 +77,28 @@ function* x(){
 function x(){
 
 }
+
+
+let x = () => {}
+
+let x = function(){
+
+}
+
+let thing2 = {
+	
+    val: function(){},
+
+    
+    test(){
+
+    }
+}
+
+function* x(){
+    yield 1
+}
+
+function x(){
+
+}
