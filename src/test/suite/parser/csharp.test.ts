@@ -6,6 +6,13 @@ import { ExtensionContext, extensions } from 'vscode';
 import { CodeParserService } from '../../../services/codeParser';
 import { Function } from '../../../parser/types';
 
+
+const LANG = 'csharp'
+const EXPECTED_FUNCTIONS = 6;
+const EXPECTED_DOCUMENTED = 3;
+const EXPECTED_UNDOCUMENTED = 3;
+const EXTENSION = '.cs';
+
 suite('C# parser tests', () => {
     let extensionContext: ExtensionContext;
     let codeParserService: CodeParserService;
@@ -18,23 +25,23 @@ suite('C# parser tests', () => {
         codeParserService = await new CodeParserService(extensionContext);
 
         let filePath: string = extensionContext.asAbsolutePath(
-            path.join("build", "src", "test", "suite", "parser", "parser-test-files", "test" + ".cs")
+            path.join("build", "src", "test", "suite", "parser", "parser-test-files", "test" + EXTENSION)
           );
         codeFile = fs.readFileSync(filePath,'utf8');
-        await codeParserService.parseText(codeFile, 'csharp');
+        await codeParserService.parseText(codeFile, LANG);
         functions = codeParserService.getFunctions();
     });
 
     test('Parsing documented functions correctly', async () => {
-        assert.strictEqual(functions.length, 6);
+        assert.strictEqual(functions.length, EXPECTED_FUNCTIONS);
     });
 
     test('Reporting correct amount of documented & undocumented functions', async () => {
-        for(let i = 0; i<3; i++){
+        for(let i = 0; i<EXPECTED_DOCUMENTED; i++){
             assert.notStrictEqual(functions[i].docstring, undefined);
         }
 
-        for(let i = 3; i<6; i++){
+        for(let i = EXPECTED_DOCUMENTED; i<EXPECTED_UNDOCUMENTED + EXPECTED_UNDOCUMENTED; i++){
             assert.strictEqual(functions[i].docstring, undefined);
         }
 
