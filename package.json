@@ -159,6 +159,7 @@
     "@types/vscode": "^1.60.0",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
+    "@vscode/vsce": "^2.18.0",
     "autoprefixer": "^10.4.13",
     "chai": "^4.3.7",
     "create-react-app": "^5.0.1",
