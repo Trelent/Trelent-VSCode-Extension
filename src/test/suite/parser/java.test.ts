@@ -4,39 +4,40 @@ import * as fs from 'fs';
 import 'mocha';
 import { ExtensionContext, extensions } from 'vscode';
 import { CodeParserService } from '../../../services/codeParser';
+import { Function } from '../../../parser/types';
 
 suite('Java parser tests', () => {
     let extensionContext: ExtensionContext;
     let codeParserService: CodeParserService;
     let codeFile: string;
+    let functions: Function[];
     suiteSetup(async () => {
         // Trigger extension activation and grab the context as some tests depend on it
         await extensions.getExtension('Trelent.trelent')?.activate();
         extensionContext = (global as any).testExtensionContext;
-        codeParserService = new CodeParserService(extensionContext);
+        codeParserService = await new CodeParserService(extensionContext);
 
         let filePath: string = extensionContext.asAbsolutePath(
             path.join("build", "src", "test", "suite", "parser", "parser-test-files", "test" + ".java")
           );
         codeFile = fs.readFileSync(filePath,'utf8');
+        await codeParserService.parseText(codeFile, 'java');
+        functions = codeParserService.getFunctions();
     });
 
-    test('Java Parsing documented functions correctly', async () => {
-        codeParserService.parseText(codeFile, 'python').then(async () => {
-            let functions = codeParserService.getFunctions();
-            assert.strictEqual(functions.length, 4);
-            });
+    test('Parsing documented functions correctly', async () => {
+        assert.strictEqual(functions.length, 4);
 
     });
 
-    test('Java reporting correct amount of documented & undocumented functions', async () => {
-        codeParserService.parseText(codeFile, 'python').then(async () => {
-            let functions = codeParserService.getFunctions();
-            assert.notStrictEqual(functions[0].docstring, undefined);
-            assert.notStrictEqual(functions[1].docstring, undefined);
-            assert.strictEqual(functions[2].docstring, undefined);
-            assert.strictEqual(functions[3].docstring, undefined);
-    });
+    test('Reporting correct amount of documented & undocumented functions', async () => {
+        for(let i = 0; i<2; i++){
+            assert.notStrictEqual(functions[i].docstring, undefined);
+        }
+
+        for(let i = 2; i<4; i++){
+            assert.strictEqual(functions[i].docstring, undefined);
+        }
 
     });
 });

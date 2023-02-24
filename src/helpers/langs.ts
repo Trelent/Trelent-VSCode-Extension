@@ -1,6 +1,6 @@
 import * as path from "path";
 
-const supportedLangs = ["csharp", "java", "javascript", , "python"];
+const supportedLangs = ["csharp", "java", "javascript", "python"];
 
 const getExtensionType = (fileName: string) => {
   let ext = path.extname(fileName);

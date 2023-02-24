@@ -25,7 +25,7 @@ export class CodeParserService {
 
   constructor(context: vscode.ExtensionContext) {
     // Initialize our TS Parser
-    Parser.init({
+    return Parser.init({
       locateFile(scriptName: string, scriptDirectory: string) {
         let scriptPath = context.asAbsolutePath(
           path.join("grammars", scriptName)
@@ -62,6 +62,7 @@ export class CodeParserService {
         );
         vscode.workspace.onDidSaveTextDocument(this.parse);
         vscode.workspace.onDidOpenTextDocument(this.parse);
+        return this;
       });
   }
 

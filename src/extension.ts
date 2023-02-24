@@ -17,7 +17,7 @@ var publicMPToken = "6a946c760957a81165973cc1ad5812ec";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   // Setup our Telemetry Service
   var telemetryService = new TelemetryService(publicMPToken);
 
@@ -31,7 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
   var authService = new AuthenticationService(context, telemetryService);
 
   // Setup our CodeParser service
-  var codeParserService = new CodeParserService(context);
+  const pending = new CodeParserService(context);
+  var codeParserService = await pending;
 
   //Setup progress Service
   var progressService = new ProgressService(context, codeParserService);

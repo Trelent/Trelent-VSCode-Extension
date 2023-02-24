@@ -5,7 +5,13 @@ def foo():
     """
     return "a"
     def foobar():
+        """
+        b
+        """
         return foo() + bar()
 
-def bar():
-    return "d"
+
+def foo(): 
+    return "a"
+    def foobar():
+        return foo() + bar()
