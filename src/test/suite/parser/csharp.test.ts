@@ -6,6 +6,8 @@ import { ExtensionContext, extensions } from 'vscode';
 import { CodeParserService } from '../../../services/codeParser';
 import { Function } from '../../../parser/types';
 
+//TODO: Make test more robust, and less static (Right now it assumes the test files will be in order of
+//Documented functions, then undocumented functions, but should work regardless of the order)
 
 const LANG = 'csharp'
 const EXPECTED_FUNCTIONS = 6;
