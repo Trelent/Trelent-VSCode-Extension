@@ -2776,6 +2776,13 @@ tree-sitter-python@^0.20.1:
   dependencies:
     nan "^2.15.0"
 
+tree-sitter-typescript@^0.20.1:
+  version "0.20.1"
+  resolved "https://registry.yarnpkg.com/tree-sitter-typescript/-/tree-sitter-typescript-0.20.1.tgz#6b338a1414f5ed13cc39e60275ddeaa0f25870a9"
+  integrity sha512-wqpnhdVYX26ATNXeZtprib4+mF2GlYQB1cjRPibYGxDRiugx5OfjWwLE4qPPxEGdp2ZLSmZVesGUjLWzfKo6rA==
+  dependencies:
+    nan "^2.14.0"
+
 trouter@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/trouter/-/trouter-2.0.1.tgz#2726a5f8558e090d24c3a393f09eaab1df232df6"
