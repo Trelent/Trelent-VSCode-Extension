@@ -1,18 +1,42 @@
 import * as assert from 'assert';
-import { after } from 'mocha';
+import * as path from "path";
+import * as fs from 'fs';
+import 'mocha';
+import { ExtensionContext, extensions } from 'vscode';
+import { CodeParserService } from '../../../services/codeParser';
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
-import * as vscode from 'vscode';
-// import * as myExtension from '../extension';
+suite('Java parser tests', () => {
+    let extensionContext: ExtensionContext;
+    let codeParserService: CodeParserService;
+    let codeFile: string;
+    suiteSetup(async () => {
+        // Trigger extension activation and grab the context as some tests depend on it
+        await extensions.getExtension('Trelent.trelent')?.activate();
+        extensionContext = (global as any).testExtensionContext;
+        codeParserService = new CodeParserService(extensionContext);
 
-suite('Extension Test Suite', () => {
-  after(() => {
-    vscode.window.showInformationMessage('All tests done!');
-  });
+        let filePath: string = extensionContext.asAbsolutePath(
+            path.join("build", "src", "test", "suite", "parser", "parser-test-files", "test" + ".java")
+          );
+        codeFile = fs.readFileSync(filePath,'utf8');
+    });
 
-  test('Sample test', () => {
-    assert.strictEqual(-1, [1, 2, 3].indexOf(5));
-    assert.strictEqual(-1, [1, 2, 3].indexOf(0));
-  });
+    test('Java Parsing documented functions correctly', async () => {
+        codeParserService.parseText(codeFile, 'python').then(async () => {
+            let functions = codeParserService.getFunctions();
+            assert.strictEqual(functions.length, 4);
+            });
+
+    });
+
+    test('Java reporting correct amount of documented & undocumented functions', async () => {
+        codeParserService.parseText(codeFile, 'python').then(async () => {
+            let functions = codeParserService.getFunctions();
+            assert.notStrictEqual(functions[0].docstring, undefined);
+            assert.notStrictEqual(functions[1].docstring, undefined);
+            assert.strictEqual(functions[2].docstring, undefined);
+            assert.strictEqual(functions[3].docstring, undefined);
+    });
+
+    });
 });
