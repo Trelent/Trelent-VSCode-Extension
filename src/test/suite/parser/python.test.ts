@@ -1,7 +1,32 @@
+import * as assert from 'assert';
+import * as path from "path";
 import * as fs from 'fs';
-import * as vscode from "vscode";
+import 'mocha';
+import { ExtensionContext, extensions } from 'vscode';
 import { CodeParserService } from '../../../services/codeParser';
 
-const ext = vscode.extensions.getExtension("Trelent.trelent");
+suite('Python parser tests', () => {
+    let extensionContext: ExtensionContext;
+    let codeParserService: CodeParserService;
+    let codeFile: string
+    suiteSetup(async () => {
+        // Trigger extension activation and grab the context as some tests depend on it
+        await extensions.getExtension('Trelent.trelent')?.activate();
+        extensionContext = (global as any).testExtensionContext;
+        codeParserService = new CodeParserService(extensionContext);
 
-var codeParserService = new CodeParserService(ext);
+        let filePath: string = extensionContext.asAbsolutePath(
+            path.join("build", "src", "test", "suite", "parser", "parser-test-files", "test" + ".py")
+          );
+        codeFile = fs.readFileSync(filePath,'utf8');
+    });
+
+    test('Python Parsing documented functions correctly', () => {
+        codeParserService.parseText(codeFile, 'python')
+        .then(() => {
+            let functions = codeParserService.getFunctions();
+            assert.strictEqual(functions.length, 2);
+        });
+
+    });
+});
