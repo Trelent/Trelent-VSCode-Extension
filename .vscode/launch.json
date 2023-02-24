@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "args": [
+          "--extensionDevelopmentPath=${workspaceFolder}"
+        ],
+        "name": "Launch Extension",
+        "outFiles": [
+          "${workspaceFolder}/build/src/**/*.js"
+        ],
+        "request": "launch",
+        "type": "extensionHost"
+      },
+      {
+        "name": "Extension Tests",
+        "type": "extensionHost",
+        "request": "launch",
+        "runtimeExecutable": "${execPath}",
+        "args": [
+          "--extensionDevelopmentPath=${workspaceFolder}",
+          "--extensionTestsPath=${workspaceFolder}/build/src/test/suite/index"
+        ],
+        "outFiles": ["${workspaceFolder}/build/src/test/**/**/*.js"]
+      }
+    ]
+  }
