@@ -34,13 +34,10 @@ async function showVersionPopup(
   currentVersion: string
 ) {
   const result = await vscode.window.showInformationMessage(
-    `Trelent v${currentVersion} — Check out progress tracking on the bottom of the editor!`,
+    `Trelent v${currentVersion} — Fixed dozens of parsing errors, and laid the groundwork for more language support!`,
     ...[
       {
         title: "Join Community",
-      },
-      {
-        title: "Learn More",
       },
     ]
   );
