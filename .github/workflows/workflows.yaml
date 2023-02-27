@@ -14,6 +14,7 @@ jobs:
       with:
         node-version: 18.x
     - run: ./installDependencies.sh
+    - run: ./buildAll.sh
     - run: xvfb-run -a yarn test
       if: runner.os == 'Linux'
     - run: yarn test
