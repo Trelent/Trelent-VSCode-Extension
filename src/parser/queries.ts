@@ -130,4 +130,5 @@ const funcQeries: any = {
   java: javaFuncQuery,
   javascript: jsFuncQuery,
   python: pythonFuncQuery,
+  typescript: jsFuncQuery
 };

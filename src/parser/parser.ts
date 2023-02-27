@@ -6,18 +6,7 @@ import { parseCSharpFunctions } from "./langs/csharp";
 import { parseJavaFunctions } from "./langs/java";
 import { parseJavaScriptFunctions } from "./langs/javascript";
 import { Function } from "./types";
-
-export const parseDocument = async (
-  document: vscode.TextDocument,
-  language: Language,
-  parser: any
-) => {
-  // Set the parser language
-  parser.setLanguage(language);
-
-  // Parse the document
-  return parser.parse(document.getText()) as Tree;
-};
+import { parseTypeScriptFunctions } from "./langs/typescript";
 
 export const parseText = async (
   text: string,
@@ -69,6 +58,7 @@ const getParser = (lang: string) => {
     java: parseJavaFunctions,
     csharp: parseCSharpFunctions,
     javascript: parseJavaScriptFunctions,
+    typescript: parseTypeScriptFunctions
   };
   return parsers[lang];
 };
