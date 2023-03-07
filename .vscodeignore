@@ -1,14 +1,3 @@
 .vscode/**
 .vscode-test/**
 build/src/test/**
-
-react-help-app/**
-src/**
-grammars/**
-.gitignore
-.yarnrc
-vsc-extension-quickstart.md
-**/tsconfig.json
-**/.eslintrc.json
-**/*.map
-**/*.ts
