@@ -1,8 +1,10 @@
 .vscode/**
 .vscode-test/**
-out/test/**
+build/src/test/**
 
+react-help-app/**
 src/**
+grammars/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
