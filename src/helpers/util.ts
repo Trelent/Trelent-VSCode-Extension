@@ -34,7 +34,7 @@ async function showVersionPopup(
   currentVersion: string
 ) {
   const result = await vscode.window.showInformationMessage(
-    `Trelent v${currentVersion} — Fixed dozens of parsing errors, and laid the groundwork for more language support!`,
+    `Trelent v${currentVersion} — Fixed parsing issue for nested functions.`,
     ...[
       {
         title: "Join Community",
