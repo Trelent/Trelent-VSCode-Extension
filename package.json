@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent - AI Docstrings on Demand",
   "description": "We write docstrings for your code automatically!",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
