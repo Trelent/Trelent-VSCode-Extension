@@ -35,7 +35,20 @@ let thing = {
      *
      * @docauthor Trelent
      */
-    val: function(){},
+    val: function(){
+        /**
+         * The val function is used to get the value of a variable.
+         * 
+         *
+         *
+         * @return The value of the variable
+         *
+         * @docauthor Trelent
+         */
+        let func = () => {
+
+        }
+    },
 
     
     /**
@@ -87,7 +100,11 @@ let x = function(){
 
 let thing2 = {
 	
-    val: function(){},
+    val: function(){
+        let func = () => {
+            
+        }
+    },
 
     
     test(){

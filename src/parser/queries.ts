@@ -12,16 +12,18 @@ const csharpFuncQuery = `
   (constructor_declaration
     name: (identifier) @function.name
     parameters: (parameter_list) @function.params
-    body: (block) @function.body) @function.def
-) @function.def
+    body: (block) @function.body
+  ) @function.def
+)
 (
   (comment)* @function.docstrings
   .
   (method_declaration
     name: (identifier) @function.name
     parameters: (parameter_list) @function.params
-    body: (block) @function.body) @function.def
-) @function.def
+    body: (block) @function.body
+  ) @function.def
+) 
 (
   (comment)* @function.docstrings
   .
@@ -120,15 +122,15 @@ const pythonFuncQuery = `
     (expression_statement
         (string) @function.docstring
       )?
+      (_)*
   ) @function.body
 ) @function.def
 `;
-
 
 const funcQeries: any = {
   csharp: csharpFuncQuery,
   java: javaFuncQuery,
   javascript: jsFuncQuery,
   python: pythonFuncQuery,
-  typescript: jsFuncQuery
+  typescript: jsFuncQuery,
 };
