@@ -10,12 +10,12 @@ import { Function } from '../../../parser/types';
 //Documented functions, then undocumented functions, but should work regardless of the order)
 
 const LANG = 'javascript'
-const EXPECTED_FUNCTIONS = 12;
-const EXPECTED_DOCUMENTED = 6;
-const EXPECTED_UNDOCUMENTED = 6;
+const EXPECTED_FUNCTIONS = 14;
+const EXPECTED_DOCUMENTED = 7;
+const EXPECTED_UNDOCUMENTED = 7;
 const EXTENSION = '.js';
 
-suite('Java parser tests', () => {
+suite('JavaScript parser tests', () => {
     let extensionContext: ExtensionContext;
     let codeParserService: CodeParserService;
     let codeFile: string;

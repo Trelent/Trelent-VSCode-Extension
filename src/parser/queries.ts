@@ -13,7 +13,7 @@ const csharpFuncQuery = `
     name: (identifier) @function.name
     parameters: (parameter_list) @function.params
     body: (block) @function.body) @function.def
-) @function.def
+)
 (
   (comment)* @function.docstrings
   .
@@ -21,7 +21,7 @@ const csharpFuncQuery = `
     name: (identifier) @function.name
     parameters: (parameter_list) @function.params
     body: (block) @function.body) @function.def
-) @function.def
+) 
 (
   (comment)* @function.docstrings
   .
@@ -120,6 +120,7 @@ const pythonFuncQuery = `
     (expression_statement
         (string) @function.docstring
       )?
+      (_)*
   ) @function.body
 ) @function.def
 `;
