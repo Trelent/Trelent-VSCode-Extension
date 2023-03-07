@@ -12,7 +12,8 @@ const csharpFuncQuery = `
   (constructor_declaration
     name: (identifier) @function.name
     parameters: (parameter_list) @function.params
-    body: (block) @function.body) @function.def
+    body: (block) @function.body
+  ) @function.def
 )
 (
   (comment)* @function.docstrings
@@ -20,7 +21,8 @@ const csharpFuncQuery = `
   (method_declaration
     name: (identifier) @function.name
     parameters: (parameter_list) @function.params
-    body: (block) @function.body) @function.def
+    body: (block) @function.body
+  ) @function.def
 ) 
 (
   (comment)* @function.docstrings
@@ -125,11 +127,10 @@ const pythonFuncQuery = `
 ) @function.def
 `;
 
-
 const funcQeries: any = {
   csharp: csharpFuncQuery,
   java: javaFuncQuery,
   javascript: jsFuncQuery,
   python: pythonFuncQuery,
-  typescript: jsFuncQuery
+  typescript: jsFuncQuery,
 };
