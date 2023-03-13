@@ -4,6 +4,8 @@ const Parser = require("web-tree-sitter");
 import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
 import { Function } from "../parser/types";
+import { ChangeDetectionService } from "./changeDetection";
+import { Tree } from "web-tree-sitter";
 
 const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
   let grammarPath = context.asAbsolutePath(
@@ -23,8 +25,10 @@ export class CodeParserService {
     typescript: null
   };
   parsedFunctions: Function[] = [];
+  changeDetectionService: ChangeDetectionService;
 
   constructor(context: vscode.ExtensionContext) {
+    this.changeDetectionService = new ChangeDetectionService();
     // Initialize our TS Parser
     return Parser.init({
       locateFile(scriptName: string, scriptDirectory: string) {
@@ -76,15 +80,21 @@ export class CodeParserService {
     // Filter bad input (mostly for supported languages etc)
     if (!isLanguageSupported(lang)) return;
 
-    await this.parseText(doc.getText(), lang);
+    let tree = await this.parseText(doc.getText(), lang);
+    
+    if(tree){
+      await this.changeDetectionService.trackState(doc, tree);
+    }
+    
   };
 
   public parseText = async (text: string, lang: string) => {
     if (!this.loadedLanguages[lang]) return;
     if (!this.parser) return; 
-
+    let parsedTree: Tree | undefined = undefined;
     await parseText(text, this.loadedLanguages[lang], this.parser)
       .then((tree) => {
+        parsedTree = tree
         return parseFunctions(tree, lang, this.loadedLanguages[lang]);
       })
       .then((functions) => {
@@ -93,6 +103,7 @@ export class CodeParserService {
       .catch((err) => {
         console.error(err);
       });
+    return parsedTree;
   }
 
   public getFunctions() {
