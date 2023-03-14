@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
-import { Tree } from "web-tree-sitter";
+import { SyntaxNode, Tree } from "web-tree-sitter";
+import { TreeRef } from "../parser/types";
 var md5 = require("md5")
+var ed = require("edit-distance")
 
 export class ChangeDetectionService {
     fileInfo: {[key: string]: Tree[]} = {};
@@ -24,7 +26,7 @@ export class ChangeDetectionService {
             queue.splice(-1);
         }
         queue.unshift(tree);
-        console.log(JSON.stringify(tree).length);
+        
     }
 
     public getHistory(doc: vscode.TextDocument){
@@ -38,11 +40,14 @@ export class ChangeDetectionService {
 
     public shouldUpdateDocstrings(doc: vscode.TextDocument): boolean{
         let history = this.getHistory(doc)
+        console.log(history.length);
         if(history.length <= 1){
             return false;
         }
         let newestTree = history[0];
         for(let i = 1; i<history.length; i++){
+            let distance = compareTrees(newestTree, history[i]);
+            console.log("distance = " + distance);
             if(compareTrees(newestTree, history[i])){
                 return true;
             }
@@ -55,8 +60,32 @@ export class ChangeDetectionService {
 
 }
 
-let compareTrees = (tree1: Tree, tree2: Tree) => {
-    return false;
+let compareTrees = (tree1: Tree, tree2: Tree): number => {
+    let time = Date.now();
+    let insert, remove, update, children;
+    insert = remove = function(node: TreeRef) { return 1; }
+    update = function(nodeA: TreeRef, nodeB: TreeRef) { return nodeA.id !== nodeB.id ? 1 : 0; }
+    children = function(node: TreeRef) { 
+        return node.children; }
+
+    
+    var ted = ed.ted(translateTree(tree1.rootNode), translateTree(tree2.rootNode), children, insert, remove, update);
+    console.log("Time = " + (Date.now() - time))
+    return ted.distance
+}
+
+let translateTree = (node: SyntaxNode) => {
+    
+    let newChildren: TreeRef[] = []
+    node.children.forEach((child: SyntaxNode) => {
+        console.log("Processing child: " + child.id);
+        newChildren.push(translateTree(child));
+    })
+    let obj: TreeRef = {
+        id: node.id,
+        children: newChildren
+    }
+    return obj;
 }
 
 let hashID = (doc: vscode.TextDocument): string => {

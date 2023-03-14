@@ -18,3 +18,8 @@ export type QueryGroup = {
   bodyNode: SyntaxNode;
   docNodes: SyntaxNode[];
 }
+
+export type TreeRef = {
+  "id": Number
+  "children": TreeRef[]
+};

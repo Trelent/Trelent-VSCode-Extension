@@ -1221,6 +1221,11 @@ duplexer2@~0.1.4:
   dependencies:
     readable-stream "^2.0.2"
 
+edit-distance@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/edit-distance/-/edit-distance-1.0.5.tgz#3eaad0417a9058736e48e090b268600080f7b4f4"
+  integrity sha512-kgJKxFAxa6PlpfVAiCfj8uCUyhs6PZWZDxW2EaX7ra1+WmLkoVjG9Z1BHfPDfhrJvWaOSm9qf/CmxqH44EVlcQ==
+
 electron-rebuild@^3.2.3:
   version "3.2.9"
   resolved "https://registry.yarnpkg.com/electron-rebuild/-/electron-rebuild-3.2.9.tgz#ea372be15f591f8d6d978ee9bca6526dadbcf20f"
