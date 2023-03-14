@@ -84,6 +84,9 @@ export class CodeParserService {
     
     if(tree){
       await this.changeDetectionService.trackState(doc, tree);
+      if(this.changeDetectionService.shouldUpdateDocstrings(doc)){
+        //TODO: Add logic to notify user to update docstring
+      }
     }
     
   };
