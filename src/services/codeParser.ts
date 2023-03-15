@@ -5,7 +5,6 @@ import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
 import { Function } from "../parser/types";
 import { ChangeDetectionService } from "./changeDetection";
-import { Tree } from "web-tree-sitter";
 
 const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
   let grammarPath = context.asAbsolutePath(
@@ -86,7 +85,7 @@ export class CodeParserService {
     if(changes > 0){
       console.log("Significant changes, should update")
       //TODO: Add logic to notify user to updated & not notify on first parse
-      
+
     }
   };
 
