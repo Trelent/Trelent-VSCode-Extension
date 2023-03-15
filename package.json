@@ -182,7 +182,7 @@
   },
   "dependencies": {
     "axios": "^0.22.0",
-    "edit-distance": "^1.0.5",
+    "fast-levenshtein": "^3.0.0",
     "md5": "^2.3.0",
     "mixpanel-browser": "^2.45.0",
     "polka": "^0.5.2",

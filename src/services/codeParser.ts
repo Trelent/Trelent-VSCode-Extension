@@ -80,24 +80,21 @@ export class CodeParserService {
     // Filter bad input (mostly for supported languages etc)
     if (!isLanguageSupported(lang)) return;
 
-    let tree = await this.parseText(doc.getText(), lang);
-    
-    if(tree){
-      await this.changeDetectionService.trackState(doc, tree);
-      if(this.changeDetectionService.shouldUpdateDocstrings(doc)){
-        //TODO: Add logic to notify user to update docstring
-      }
+    await this.parseText(doc.getText(), lang);
+    let functions = this.getFunctions();
+    let changes = this.changeDetectionService.trackState(doc, functions);
+    if(changes > 0){
+      console.log("Significant changes, should update")
+      //TODO: Add logic to notify user to updated & not notify on first parse
+      
     }
-    
   };
 
   public parseText = async (text: string, lang: string) => {
     if (!this.loadedLanguages[lang]) return;
     if (!this.parser) return; 
-    let parsedTree: Tree | undefined = undefined;
     await parseText(text, this.loadedLanguages[lang], this.parser)
       .then((tree) => {
-        parsedTree = tree
         return parseFunctions(tree, lang, this.loadedLanguages[lang]);
       })
       .then((functions) => {
@@ -106,7 +103,6 @@ export class CodeParserService {
       .catch((err) => {
         console.error(err);
       });
-    return parsedTree;
   }
 
   public getFunctions() {

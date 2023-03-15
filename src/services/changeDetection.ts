@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
-import { SyntaxNode, Tree } from "web-tree-sitter";
-import { TreeRef } from "../parser/types";
+import { Function } from "../parser/types";
 var md5 = require("md5")
-var ed = require("edit-distance")
+var levenshtein = require("fast-levenshtein")
 
 export class ChangeDetectionService {
-    fileInfo: {[key: string]: Tree[]} = {};
+    fileInfo: {[key: string]: Function[]} = {};
 
     MAX_TRACKING_SIZE = 100;
     
@@ -14,22 +13,21 @@ export class ChangeDetectionService {
     /* Adds state to the track history of a file. 
     *  new tree is saved to index 0 of the history
     */
-    public async trackState(doc: vscode.TextDocument, tree: Tree){
+    public trackState(doc: vscode.TextDocument, functions: Function[]): number{
         
         let trackID = hashID(doc);
-        console.log("ID: " + trackID);
         if(!(trackID in this.fileInfo)){
             this.fileInfo[trackID] = [];
         }
-        let queue = this.fileInfo[trackID]
-        while(queue.length >= this.MAX_TRACKING_SIZE){
-            queue.splice(-1);
+        let changes = this.hasSignificantChanges(doc, functions);
+        if(changes > 0){
+            this.fileInfo[trackID] = functions
         }
-        queue.unshift(tree);
+        return changes;
         
     }
 
-    public getHistory(doc: vscode.TextDocument){
+    public getHistory(doc: vscode.TextDocument): Function[] {
         let trackID = hashID(doc);
         if(!(trackID in this.fileInfo)){
             console.log("ERROR: Could not find history with hash (" + trackID + ")");
@@ -38,21 +36,52 @@ export class ChangeDetectionService {
         return this.fileInfo[trackID];
     }
 
-    public shouldUpdateDocstrings(doc: vscode.TextDocument): boolean{
+    public hasSignificantChanges(doc: vscode.TextDocument, functions: Function[]): number{
         let history = this.getHistory(doc)
-        console.log(history.length);
-        if(history.length <= 1){
-            return false;
-        }
-        let newestTree = history[0];
-        for(let i = 1; i<history.length; i++){
-            let distance = compareTrees(newestTree, history[i]);
-            console.log("distance = " + distance);
-            if(compareTrees(newestTree, history[i])){
-                return true;
+
+        const newFunctionVal = 1;
+        const functionDeletedVal = 0;
+        const functionChangeMult = 1;
+        let sum = 0;
+        
+        let idMatching: {[key: string]: {[key: string]: Function}} = {};
+
+        functions.forEach((func) => {
+            let id = md5(func.name + func.params.join(","))
+            if(!(id in idMatching)){
+                idMatching[id] = {};
             }
-        }
-        return false;
+            idMatching[id]["new"] = func
+        });
+
+        history.forEach((func) => {
+            let id = md5(func.name + func.params.join(","))
+            if(!(id in idMatching)){
+                idMatching[id] = {};
+            }
+            idMatching[id]["old"] = func
+        });
+
+        var ids = Object.keys(idMatching);
+
+        ids.map((id) => {
+            return idMatching[id];
+        })
+        .forEach((functionPair) => {
+            if("old" in functionPair){
+                if("new" in functionPair){
+                    sum += compareFunctions(functionPair["old"], functionPair["new"]) * functionChangeMult;
+                }
+                else{
+                    sum += functionDeletedVal;
+                }
+            }
+            else{
+                sum += newFunctionVal;
+            }
+        })
+
+        return sum;
     }
 
 
@@ -60,32 +89,13 @@ export class ChangeDetectionService {
 
 }
 
-let compareTrees = (tree1: Tree, tree2: Tree): number => {
-    let time = Date.now();
-    let insert, remove, update, children;
-    insert = remove = function(node: TreeRef) { return 1; }
-    update = function(nodeA: TreeRef, nodeB: TreeRef) { return nodeA.id !== nodeB.id ? 1 : 0; }
-    children = function(node: TreeRef) { 
-        return node.children; }
-
+let compareFunctions = (function1: Function, function2: Function): number => {
+    let sum = 0;
+    sum += levenshtein.get(function1.body, function2.body);
+    sum += levenshtein.get(function1.definition, function2.definition);
+    sum += levenshtein.get(function1.text, function2.text);
+    return sum;
     
-    var ted = ed.ted(translateTree(tree1.rootNode), translateTree(tree2.rootNode), children, insert, remove, update);
-    console.log("Time = " + (Date.now() - time))
-    return ted.distance
-}
-
-let translateTree = (node: SyntaxNode) => {
-    
-    let newChildren: TreeRef[] = []
-    node.children.forEach((child: SyntaxNode) => {
-        console.log("Processing child: " + child.id);
-        newChildren.push(translateTree(child));
-    })
-    let obj: TreeRef = {
-        id: node.id,
-        children: newChildren
-    }
-    return obj;
 }
 
 let hashID = (doc: vscode.TextDocument): string => {
