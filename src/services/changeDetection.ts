@@ -14,11 +14,13 @@ export class ChangeDetectionService {
     public trackState(doc: vscode.TextDocument, functions: Function[]): number{
         
         let trackID = hashID(doc);
+        let shouldNotify = true;
         if(!(trackID in this.fileInfo)){
             this.fileInfo[trackID] = [];
+            shouldNotify = false;
         }
         let changes = this.hasSignificantChanges(doc, functions);
-        if(changes > 0){
+        if(changes != 0){
             this.fileInfo[trackID] = functions
         }
         return changes;
@@ -43,6 +45,11 @@ export class ChangeDetectionService {
      */
     public hasSignificantChanges(doc: vscode.TextDocument, functions: Function[]): number{
         let history = this.getHistory(doc)
+
+        //If we have no history for this file, we should not update documentation
+        if(history.length == 0){
+            return -1
+        }
 
         const newFunctionVal = 1;
         const functionDeletedVal = 0;
