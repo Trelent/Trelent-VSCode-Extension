@@ -91,7 +91,7 @@ export class CodeParserService {
       .then((val) => {
         switch(val){
           case "Yes":
-            console.log("Documentation accepted")
+            console.log("Documentation accepted");
             break;
           default:
             console.log("Documentation refused");
