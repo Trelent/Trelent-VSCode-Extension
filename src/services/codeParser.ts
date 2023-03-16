@@ -85,7 +85,7 @@ export class CodeParserService {
     if(changes > 0){
       console.log("Significant changes, should update")
       //TODO: Add logic to notify user to updated & not notify on first parse
-
+      vscode.window.showInformationMessage("Trelent: Your document has changed! Would you like us to generate docstrings for you?", "Yes", "No");
     }
   };
 

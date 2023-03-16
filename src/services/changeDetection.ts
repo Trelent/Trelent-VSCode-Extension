@@ -8,8 +8,6 @@ export class ChangeDetectionService {
 
     MAX_TRACKING_SIZE = 100;
     
-
-
     /* Adds state to the track history of a file. 
     *  new tree is saved to index 0 of the history
     */
@@ -27,6 +25,7 @@ export class ChangeDetectionService {
         
     }
 
+    
     public getHistory(doc: vscode.TextDocument): Function[] {
         let trackID = hashID(doc);
         if(!(trackID in this.fileInfo)){
@@ -36,6 +35,12 @@ export class ChangeDetectionService {
         return this.fileInfo[trackID];
     }
 
+    /**
+     * Determines whether or not we should notify the user that their document has been updated, and should be re-documented
+     * @param doc 
+     * @param functions 
+     * @returns 
+     */
     public hasSignificantChanges(doc: vscode.TextDocument, functions: Function[]): number{
         let history = this.getHistory(doc)
 
@@ -44,6 +49,7 @@ export class ChangeDetectionService {
         const functionChangeMult = 1;
         let sum = 0;
         
+        //The format of the idMatching object is key: Hash of the name + params, value object with keys "old", and "new"
         let idMatching: {[key: string]: {[key: string]: Function}} = {};
 
         functions.forEach((func) => {
@@ -69,13 +75,16 @@ export class ChangeDetectionService {
         })
         .forEach((functionPair) => {
             if("old" in functionPair){
+                //If the function still exists
                 if("new" in functionPair){
                     sum += compareFunctions(functionPair["old"], functionPair["new"]) * functionChangeMult;
                 }
+                //If the function was deleted
                 else{
                     sum += functionDeletedVal;
                 }
             }
+            //If this is a new function
             else{
                 sum += newFunctionVal;
             }
@@ -83,9 +92,6 @@ export class ChangeDetectionService {
 
         return sum;
     }
-
-
-    //TODO: Remove files automatically when they are deleted
 
 }
 
