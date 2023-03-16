@@ -5,6 +5,7 @@ export type Function = {
   definition: string;
   docstring: string | undefined;
   docstring_point: number[] | undefined;
+  docstring_range: number[][] | undefined;
   name: string;
   params: string[];
   range: number[][]; // [[start col, start line], [end col, end line]]

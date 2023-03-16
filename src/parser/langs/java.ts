@@ -42,6 +42,7 @@ export const parseJavaFunctions = (
         definition: "",
         docstring: undefined,
         docstring_point: undefined,
+        docstring_range: undefined,
         name: "",
         params: [],
         range: [
@@ -71,6 +72,10 @@ export const parseJavaFunctions = (
     //if there is a docNode present, populate the docstring field
     if(docNode){
         func.docstring = docNode.text;
+        func.docstring_range = [
+            [docNode.startPosition.row, docNode.startPosition.column], 
+            [docNode.endPosition.row, docNode.endPosition.column]
+        ];
     }
 
     func.docstring_point = docstringPoint;

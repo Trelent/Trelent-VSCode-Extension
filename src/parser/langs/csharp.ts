@@ -39,6 +39,7 @@ export const parseCSharpFunctions = (
         definition: "",
         docstring: undefined,
         docstring_point: undefined,
+        docstring_range: undefined,
         name: "",
         params: [],
         range: [
@@ -71,7 +72,23 @@ export const parseCSharpFunctions = (
         });
         //Chop off trailing newline
         docText = docText.substring(0, docText.length - 2);
+
+        //get docstring position
         func.docstring = docText;
+        const firstRow = Math.min(...docNodes.map((node) => {
+            return node.startPosition.row
+        }));
+        const lastRow = Math.max(...docNodes.map((node) => {
+            return node.endPosition.row;
+        }))
+        let docstringStart = docNodes.filter((node) => {
+            node.startPosition.row == firstRow;
+        })[0].startPosition;
+        let docstringEnd = docNodes.filter((node) => {
+            node.endPosition.row == lastRow
+        })[0].endPosition;
+        func.docstring_range = [[docstringStart.row, docstringStart.column], [docstringEnd.row, docstringEnd.column]];
+
     }
 
     func.docstring_point = docstringPoint;
