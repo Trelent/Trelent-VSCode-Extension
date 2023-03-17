@@ -139,7 +139,43 @@
           "description": "Python docstring format"
         }
       }
-    }
+    },
+    "colors":[
+      {
+        "id": "trelent.autodoc.recommendationColor",
+        "description": "Color used to highlight recommended docstrings",
+        "defaults": {
+          "dark": "#c140c866",
+          "light": "#c140c866"
+        }
+      },
+      {
+        "id": "trelent.autodoc.recommendationHeaderColor",
+        "description": "Color used as the header for current docstrings",
+        "defaults": {
+          "dark": "#c140c8",
+          "light": "#c140c8"
+        }
+      },
+      {
+        "id": "trelent.autodoc.currentColor",
+        "description": "Color used to highlight current docstrings",
+        "defaults": {
+          "dark": "#47c84066",
+          "light": "#47c84066"
+        }
+      },
+      {
+        "id": "trelent.autodoc.currentHeaderColor",
+        "description": "Color used as the header for current docstrings",
+        "defaults": {
+          "dark": "#47c840",
+          "light": "#47c840"
+        }
+      }
+      
+
+    ]
   },
   "scripts": {
     "vscode:prepublish": "./buildAll.sh",
