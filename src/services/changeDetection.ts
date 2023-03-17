@@ -5,13 +5,16 @@ var levenshtein = require("fast-levenshtein")
 
 export class ChangeDetectionService {
     fileInfo: {[key: string]: Function[]} = {};
+    docstringRecommendations: {[key: string]: string} = {};
 
     MAX_TRACKING_SIZE = 100;
+
+    UPDATE_THRESHOLD = 50;
     
     /* Adds state to the track history of a file. 
     *  new tree is saved to index 0 of the history
     */
-    public trackState(doc: vscode.TextDocument, functions: Function[]): number{
+    public trackState(doc: vscode.TextDocument, functions: Function[]){
         
         let trackID = hashID(doc);
         let shouldNotify = true;
@@ -19,11 +22,7 @@ export class ChangeDetectionService {
             this.fileInfo[trackID] = [];
             shouldNotify = false;
         }
-        let changes = this.hasSignificantChanges(doc, functions);
-        if(changes != 0){
-            this.fileInfo[trackID] = functions
-        }
-        return changes;
+        return this.getChangedFunctions(doc, functions);
         
     }
 
@@ -43,21 +42,17 @@ export class ChangeDetectionService {
      * @param functions 
      * @returns 
      */
-    public hasSignificantChanges(doc: vscode.TextDocument, functions: Function[]): number{
+    public getChangedFunctions(doc: vscode.TextDocument, functions: Function[]): Function[]{
         let history = this.getHistory(doc)
 
         //If we have no history for this file, we should not update documentation
         if(history.length == 0){
-            return -1
+            return [];
         }
-
-        const newFunctionVal = 1;
-        const functionDeletedVal = 0;
-        const functionChangeMult = 1;
-        let sum = 0;
-        
         //The format of the idMatching object is key: Hash of the name + params, value object with keys "old", and "new"
         let idMatching: {[key: string]: {[key: string]: Function}} = {};
+
+        let docstringUpdates: Function[] = [];
 
         functions.forEach((func) => {
             let id = md5(func.name + func.params.join(","))
@@ -77,27 +72,32 @@ export class ChangeDetectionService {
 
         var ids = Object.keys(idMatching);
 
-        ids.map((id) => {
-            return idMatching[id];
-        })
-        .forEach((functionPair) => {
+        ids.forEach((id) => {
+            let functionPair = idMatching[id];
             if("old" in functionPair){
                 //If the function still exists
                 if("new" in functionPair){
-                    sum += compareFunctions(functionPair["old"], functionPair["new"]) * functionChangeMult;
+                    if(compareFunctions(functionPair["old"], functionPair["new"]) > this.UPDATE_THRESHOLD){
+                        docstringUpdates.push(functionPair["new"]);
+                    }
                 }
-                //If the function was deleted
+                //If the function was deleted, delete the docstring recommendation
                 else{
-                    sum += functionDeletedVal;
+                    try{
+                        delete this.docstringRecommendations[id];
+                    }
+                    catch(e){
+                        console.log("Error deleting function with hash: " + id);
+                    }
                 }
             }
             //If this is a new function
             else{
-                sum += newFunctionVal;
+                docstringUpdates.push(functionPair["new"]);
             }
         })
 
-        return sum;
+        return docstringUpdates;
     }
 
 }

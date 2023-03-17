@@ -82,22 +82,6 @@ export class CodeParserService {
     await this.parseText(doc.getText(), lang);
     let functions = this.getFunctions();
     let changes = this.changeDetectionService.trackState(doc, functions);
-    if(changes > 0){
-      console.log("Significant changes, should update")
-      //TODO: Add logic to notify user to updated & not notify on first parse
-      vscode.window.showInformationMessage("Trelent: Your document has changed! Would you like us to generate docstrings for you?",
-      "Yes",
-      "No")
-      .then((val) => {
-        switch(val){
-          case "Yes":
-            console.log("Documentation accepted");
-            break;
-          default:
-            console.log("Documentation refused");
-        }
-      });
-    }
   };
 
   public parseText = async (text: string, lang: string) => {
