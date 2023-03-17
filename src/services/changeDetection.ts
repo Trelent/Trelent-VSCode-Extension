@@ -5,12 +5,10 @@ var levenshtein = require("fast-levenshtein")
 
 export class ChangeDetectionService {
     fileInfo: {[key: string]: Function[]} = {};
-    docstringRecommendations: {[key: string]: string} = {};
 
     MAX_TRACKING_SIZE = 100;
 
     UPDATE_THRESHOLD = 50;
-    
     /* Adds state to the track history of a file. 
     *  new tree is saved to index 0 of the history
     */
@@ -22,8 +20,9 @@ export class ChangeDetectionService {
             this.fileInfo[trackID] = [];
             shouldNotify = false;
         }
-        return this.getChangedFunctions(doc, functions);
-        
+        let updateThese = this.getChangedFunctions(doc, functions);
+        this.fileInfo[trackID] = functions;
+        return updateThese
     }
 
     
@@ -42,20 +41,24 @@ export class ChangeDetectionService {
      * @param functions 
      * @returns 
      */
-    public getChangedFunctions(doc: vscode.TextDocument, functions: Function[]): Function[]{
+    public getChangedFunctions(doc: vscode.TextDocument, functions: Function[]): {[key: string]: Function[]}{
         let history = this.getHistory(doc)
+
+        let returnObj: {[key: string]: Function[]} = {
+            "new": [], 
+            "deleted": [], 
+            "updated": []
+        };
 
         //If we have no history for this file, we should not update documentation
         if(history.length == 0){
-            return [];
+            return returnObj;
         }
         //The format of the idMatching object is key: Hash of the name + params, value object with keys "old", and "new"
         let idMatching: {[key: string]: {[key: string]: Function}} = {};
 
-        let docstringUpdates: Function[] = [];
-
         functions.forEach((func) => {
-            let id = md5(func.name + func.params.join(","))
+            let id = hashFunction(func);
             if(!(id in idMatching)){
                 idMatching[id] = {};
             }
@@ -63,7 +66,7 @@ export class ChangeDetectionService {
         });
 
         history.forEach((func) => {
-            let id = md5(func.name + func.params.join(","))
+            let id = hashFunction(func);
             if(!(id in idMatching)){
                 idMatching[id] = {};
             }
@@ -78,26 +81,21 @@ export class ChangeDetectionService {
                 //If the function still exists
                 if("new" in functionPair){
                     if(compareFunctions(functionPair["old"], functionPair["new"]) > this.UPDATE_THRESHOLD){
-                        docstringUpdates.push(functionPair["new"]);
+                        returnObj.updated.push(functionPair["new"]);
                     }
                 }
-                //If the function was deleted, delete the docstring recommendation
+                //If the function was deleted
                 else{
-                    try{
-                        delete this.docstringRecommendations[id];
-                    }
-                    catch(e){
-                        console.log("Error deleting function with hash: " + id);
-                    }
+                    returnObj.deleted.push(functionPair["old"]);
                 }
             }
             //If this is a new function
             else{
-                docstringUpdates.push(functionPair["new"]);
+                returnObj.new.push(functionPair["new"]);
             }
         })
 
-        return docstringUpdates;
+        return returnObj;
     }
 
 }
@@ -111,6 +109,10 @@ let compareFunctions = (function1: Function, function2: Function): number => {
     
 }
 
-let hashID = (doc: vscode.TextDocument): string => {
+export let hashFunction = (func: Function): string => {
+    return md5(func.name + func.params.join(","))
+}
+
+export let hashID = (doc: vscode.TextDocument): string => {
     return md5(doc.uri.toString())
 }

@@ -20,7 +20,7 @@ export type QueryGroup = {
   docNodes: SyntaxNode[];
 }
 
-export type TreeRef = {
-  "id": Number
-  "children": TreeRef[]
-};
+export type DocstringRecommendation = {
+  function: Function,
+  recommendedDocstring: string
+}
