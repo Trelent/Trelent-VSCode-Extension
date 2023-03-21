@@ -56,10 +56,6 @@ export default class DocstringInsertService{
         let fileHistory = this.codeParserService.changeDetectionService.getHistory(document)
         let allFunctions = fileHistory.allFunctions;
         let changedFunctions: {[key: string]: Function[]} = fileHistory.updates;
-        if(changedFunctions.new.length == 0 && changedFunctions.updated.length == 0 && changedFunctions.deleted.length == 0){
-            this.updating.delete(document);
-            return [];
-        }
 
         let docId = hashID(document);
         if(!this.changedFunctions[docId]){
@@ -160,10 +156,11 @@ export default class DocstringInsertService{
                                     offsetVal -= docstringSize;
                                 }
                             });
+                            this.markAsChanged(document, func);
                         }
                     }
                     finally{
-
+                        
                     }
                     
                 }
@@ -186,6 +183,17 @@ export default class DocstringInsertService{
         finally{
             this.updating.delete(document);
             return {};
+        }
+    }
+
+    public markAsChanged(doc: vscode.TextDocument, func: Function){
+        let docId = hashID(doc);
+        let funcId = hashFunction(func);
+        if(!this.changedFunctions[docId]){
+            this.changedFunctions[docId] = new Set();
+        }
+        if(this.changedFunctions[docId].has(funcId)){
+            this.changedFunctions[docId].delete(funcId);
         }
     }
 
