@@ -4,8 +4,9 @@ const Parser = require("web-tree-sitter");
 import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
 import { DocstringRecommendation, Function } from "../parser/types";
-import { ChangeDetectionService, hashFunction, hashID } from "./changeDetection";
-import DocstringDecorator from "../autodoc/DocstringDecorator";
+import { ChangeDetectionService, hashFunction, hashID } from "../autodoc/changeDetection";
+import DocstringInsertService from "../autodoc/DocstringInsertService";
+import { TelemetryService } from "./telemetry";
 
 const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
   let grammarPath = context.asAbsolutePath(
@@ -28,11 +29,13 @@ export class CodeParserService {
   };
   parsedFunctions: Function[] = [];
   changeDetectionService: ChangeDetectionService;
-  docstringDecorator: DocstringDecorator;
+  autodocService: DocstringInsertService;
+  telemetryService: TelemetryService;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, telemetryService: TelemetryService) {
+    this.telemetryService = telemetryService;
     this.changeDetectionService = new ChangeDetectionService();
-    this.docstringDecorator = new DocstringDecorator(context);
+    this.autodocService = new DocstringInsertService(context, this, telemetryService);
     // Initialize our TS Parser
     return Parser.init({
       locateFile(scriptName: string, scriptDirectory: string) {
@@ -72,8 +75,8 @@ export class CodeParserService {
             }
           }
         );
-        vscode.workspace.onDidSaveTextDocument(this.parse);
-        vscode.workspace.onDidOpenTextDocument(this.parse);
+      //  vscode.workspace.onDidSaveTextDocument(this.parse);
+      //  vscode.workspace.onDidOpenTextDocument(this.parse);
         return this;
       });
   }
@@ -86,82 +89,8 @@ export class CodeParserService {
 
     await this.parseText(doc.getText(), lang);
     let functions = this.getFunctions();
-
-    this.updateRecommendedDocstrings(doc, functions);
-    return functions;
+    return this.changeDetectionService.trackState(doc, functions);
   };
-
-  private async updateRecommendedDocstrings(doc: vscode.TextDocument, functions: Function[]){
-    let changes = this.changeDetectionService.trackState(doc, functions);
-
-    let docId = hashID(doc);
-
-    let docstringRecommendations = this.recommendedDocstrings[docId] || {};
-
-    let newFunctions: Function[] = changes.new;
-    let updatedFunctions: Function[] = changes.updated;
-    let deletedFunctions: Function[] = changes.deleted;
-    
-    let functionsToDocument: {[key: string]: Function} = {};
-
-    //mark the new functions to be documented
-    newFunctions.forEach((func) => {
-      const funcId = hashFunction(func);
-      if(docstringRecommendations[funcId]) {
-        console.error(`Function with id ${funcId} already has a recommended docstring, so it's not a new function`);
-        return;
-      }
-      functionsToDocument[funcId] = func;
-    });
-
-    //mark the updated functions to be documented
-    updatedFunctions.forEach((func) => {
-      const funcId = hashFunction(func);
-      if(!docstringRecommendations[funcId]){
-        console.error(`Function with id ${funcId} doesn't have a recommended docstring, so it's not an updated function`);
-        return;
-      }
-      functionsToDocument[funcId] = func;
-    })
-
-    //Delete docstrings for deleted functions
-    deletedFunctions.forEach((func) => {
-      const funcId = hashFunction(func);
-      if(!docstringRecommendations[funcId]){
-        console.error(`Function with id ${funcId} doesn't have a recommended docstring, so it's not a deleted function`);
-        return;
-      }
-      delete docstringRecommendations[funcId];
-    });
-
-    //Update the recommended docstrings
-
-    let newDocstringRecommendations = await this.requestDocstrings(doc, functionsToDocument);
-
-    //Populate docstring recommendations
-    Object.keys(newDocstringRecommendations).forEach((funcId) => {
-      docstringRecommendations[funcId] = newDocstringRecommendations[funcId];
-    });
-
-    this.docstringDecorator.applyDocstringRecommendations(Object.values(docstringRecommendations), doc);
-    
-
-  }
-
-  private async requestDocstrings(doc: vscode.TextDocument, functions: {[key: string]: Function}): Promise<{ [key: string]: DocstringRecommendation}> {
-    //TODO: Implement this method
-    
-    let returnThis: {[key: string]: DocstringRecommendation} = {};
-    Object.keys(functions).forEach((funcId) => {
-      let func = functions[funcId];
-      let docstringRecommendation: DocstringRecommendation = {
-        recommendedDocstring: "This is a docstring",
-        function: func
-      }
-      returnThis[funcId] = docstringRecommendation;
-    });
-    return returnThis;
-  }
 
   public parseText = async (text: string, lang: string) => {
     if (!this.loadedLanguages[lang]) return;

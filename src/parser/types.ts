@@ -3,6 +3,7 @@ import { SyntaxNode } from "web-tree-sitter";
 export type Function = {
   body: string;
   definition: string;
+  definition_line: number;
   docstring: string | undefined;
   docstring_point: number[] | undefined;
   docstring_range: number[][] | undefined;

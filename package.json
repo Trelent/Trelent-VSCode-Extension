@@ -137,44 +137,50 @@
             "Numpy style Python documentation format."
           ],
           "description": "Python docstring format"
+        },
+        "trelent.autodoc.mode": {
+          "type": "string",
+          "default": "Enable Globally",
+          "enum": [
+            "Enable Per-Function",
+            "Enable Globally",
+            "Maintain Docstrings"
+          ],
+          "enumDescriptions": [
+            "If set to 'Enable Per-Function', the auto-doc service will only notify of changes for functions with the tag @trelent-highlight.",
+            "If set to 'Enable Globally', the auto-doc service will be enabled for all functions, functions titled with the tag @trelent-ignore will not be highlighted.",
+            "If set to 'Maintain Docstrings', the auto-doc service will automatically document all functions automatically"
+          ],
+          "description": "Defines the behaviour of the auto-doc service."
+        },
+        "trelent.auto.changeThreshold": {
+          "type": "string",
+          "default": "Passive",
+          "enum": [
+            "Passive",
+            "Neutral",
+            "Aggressive"
+          ]
         }
       }
     },
     "colors":[
       {
-        "id": "trelent.autodoc.recommendationColor",
+        "id": "trelent.autodoc.functionColor",
         "description": "Color used to highlight recommended docstrings",
         "defaults": {
-          "dark": "#c140c866",
-          "light": "#c140c866"
+          "dark": "#63B9D611",
+          "light": "#63B9D611"
         }
       },
       {
-        "id": "trelent.autodoc.recommendationHeaderColor",
-        "description": "Color used as the header for current docstrings",
+        "id": "trelent.autodoc.functionHeadColor",
+        "description": "Color used as the header for highlighting functions",
         "defaults": {
-          "dark": "#c140c8",
-          "light": "#c140c8"
-        }
-      },
-      {
-        "id": "trelent.autodoc.currentColor",
-        "description": "Color used to highlight current docstrings",
-        "defaults": {
-          "dark": "#47c84066",
-          "light": "#47c84066"
-        }
-      },
-      {
-        "id": "trelent.autodoc.currentHeaderColor",
-        "description": "Color used as the header for current docstrings",
-        "defaults": {
-          "dark": "#47c840",
-          "light": "#47c840"
+          "dark": "#63B9D622",
+          "light": "#63B9D622"
         }
       }
-      
-
     ]
   },
   "scripts": {

@@ -37,6 +37,7 @@ export const parseCSharpFunctions = (
     let func: Function = {
         body: "",
         definition: "",
+        definition_line: nameNode.startPosition.row,
         docstring: undefined,
         docstring_point: undefined,
         docstring_range: undefined,

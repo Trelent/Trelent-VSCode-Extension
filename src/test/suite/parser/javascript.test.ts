@@ -5,6 +5,7 @@ import 'mocha';
 import { ExtensionContext, extensions } from 'vscode';
 import { CodeParserService } from '../../../services/codeParser';
 import { Function } from '../../../parser/types';
+import { getTelemetryService } from '../../../services/telemetry';
 
 //TODO: Make test more robust, and less static (Right now it assumes the test files will be in order of
 //Documented functions, then undocumented functions, but should work regardless of the order)
@@ -24,7 +25,7 @@ suite('JavaScript parser tests', () => {
         // Trigger extension activation and grab the context as some tests depend on it
         await extensions.getExtension('Trelent.trelent')?.activate();
         extensionContext = (global as any).testExtensionContext;
-        codeParserService = await new CodeParserService(extensionContext);
+        codeParserService = await new CodeParserService(extensionContext, getTelemetryService());
 
         let filePath: string = extensionContext.asAbsolutePath(
             path.join("build", "src", "test", "suite", "parser", "parser-test-files", "test" + EXTENSION)

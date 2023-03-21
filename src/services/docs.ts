@@ -251,6 +251,7 @@ const isCursorWithinFunction = (
       validFuncs.push(func);
     }
   }
+  
 
   // Search for the one with the greatest indentation, ie func.range[0][1] is the greatest
   let greatestIndentation = -1;
@@ -263,4 +264,63 @@ const isCursorWithinFunction = (
   }
 
   return greatestIndentationFunc;
+};
+
+export let writeDocstringsFromParsedDocument = async (context: vscode.ExtensionContext, doc: vscode.TextDocument, functions: Function[], telemetry: TelemetryService) => {
+  if(!telemetry.canSendServerData()){
+    console.log("Not sending docstrings to server because user has opted out");
+    return [];
+  }
+  const editor = vscode.window.visibleTextEditors.find((editor) => editor.document === doc);
+  if(!editor){
+    console.error("Could not find editor");
+    return [];
+  }
+
+  if (!isLanguageSupported(editor.document.languageId)) {
+    console.log(`Language ${editor.document.languageId} is not supported`)
+    return [];
+  }
+
+  let languageId = editor.document.languageId;
+
+  let documentContent = editor.document.getText();
+
+  let format =
+          vscode.workspace
+            .getConfiguration("trelent")
+            .get(`docs.format.${languageId}`) || "rest";
+
+  let modulesText = await ModuleGatherer.getModules(
+    documentContent,
+    languageId
+  );
+
+  if (typeof format != "string") {
+    console.error("Invalid format");
+    return [];
+  }
+
+  let responses: {docstring: string, function: Function}[] = [];
+
+  await requestDocstrings(context,
+    format,
+    functions,
+    vscode.env.machineId,
+    languageId,
+    modulesText).then((result: { success: boolean; error: string; data: any; function: Function}[]) => {
+      if(result == null){
+        console.error("No results from documentation call");
+        return;
+      }
+      result.forEach((docstringData) => {
+          responses.push({docstring: docstringData.data.docstring, function: docstringData.function});
+
+      });
+    });
+
+    return responses;
+
+        
+
 };

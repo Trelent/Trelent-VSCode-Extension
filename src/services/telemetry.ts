@@ -84,3 +84,16 @@ function getTelemetrySettings(): number {
       return 3;
   }
 }
+
+let service: TelemetryService;
+
+export let createTelemetryService = (mixpanelToken: string) => {
+  if (!service) {
+    service = new TelemetryService(mixpanelToken);
+  }
+  return service;
+}
+
+export let getTelemetryService = () => {
+  return service;
+}

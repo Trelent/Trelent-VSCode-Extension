@@ -1,78 +1,42 @@
 import * as vscode from 'vscode'
 import { DocstringRecommendation, Function } from '../parser/types';
-import { IExtensionConfiguration } from './interfaces';
+import { CodeParserService } from '../services/codeParser';
 
 export default class DocstringDecorator implements vscode.Disposable {
 
     private decorations: { [key: string]: vscode.TextEditorDecorationType } = {};
     private decorationUsesWholeLine: boolean = true;
 
-    private updating = new Set<vscode.TextEditor>();
 
-
-    constructor(private context: vscode.ExtensionContext) {
-        this.registerDocrationTypes({recommendDocstringUpdates: true})
+    constructor() {
+        this.registerDocrationTypes()
     }
     
 
-    private registerDocrationTypes(config: IExtensionConfiguration){
+    private registerDocrationTypes(){
         Object.keys(this.decorations).forEach((key) => {
             this.decorations[key].dispose();
         });
 
         this.decorations = {};
 
-        if(!config.recommendDocstringUpdates){
-            return;
-        }
-
-        this.decorations["current.docstring"] = vscode.window.createTextEditorDecorationType({
+        this.decorations["function.body"] = vscode.window.createTextEditorDecorationType({
             isWholeLine: this.decorationUsesWholeLine,
-            backgroundColor: new vscode.ThemeColor('trelent.autodoc.currentColor'),
-        });
-
-        this.decorations["recommended.docstring"] = vscode.window.createTextEditorDecorationType({
-            isWholeLine: this.decorationUsesWholeLine,
-            backgroundColor: new vscode.ThemeColor('trelent.autodoc.recommendationColor'),
+            backgroundColor: new vscode.ThemeColor('trelent.autodoc.functionColor'),
             
         });
 
-        this.decorations['current.header'] = vscode.window.createTextEditorDecorationType({
-            isWholeLine: this.decorationUsesWholeLine,
-            backgroundColor: new vscode.ThemeColor('trelent.autodoc.currentHeaderColor'),
-            color: new vscode.ThemeColor('editor.foreground'),
-            outlineStyle: 'solid',
-            outlineWidth: '1pt',
-            outlineColor: new vscode.ThemeColor('merge.border'),
-            after: {
-                contentText: ' ' + vscode.l10n.t("(Current Docstring)"),
-                color: new vscode.ThemeColor('descriptionForeground')
-            }
-        });
-
-        this.decorations['splitter'] = vscode.window.createTextEditorDecorationType({
-            color: new vscode.ThemeColor('editor.foreground'),
-            outlineStyle: 'solid',
-            outlineWidth: '1pt',
-            outlineColor: new vscode.ThemeColor('merge.border'),
-            isWholeLine: this.decorationUsesWholeLine,
-        });
-
-        this.decorations['recommended.header'] = vscode.window.createTextEditorDecorationType({
-            backgroundColor: new vscode.ThemeColor('trelent.autodoc.recommendationHeaderColor'),
-            color: new vscode.ThemeColor('editor.foreground'),
-            outlineStyle: 'solid',
-            outlineWidth: '1pt',
-            outlineColor: new vscode.ThemeColor('merge.border'),
+        this.decorations['function.header'] = vscode.window.createTextEditorDecorationType({
+            backgroundColor: new vscode.ThemeColor('trelent.autodoc.functionHeadColor'),
             isWholeLine: this.decorationUsesWholeLine,
             after: {
-                contentText: ' ' + vscode.l10n.t("\n(Recommended Docstring)"),
+                contentText: ' ' + vscode.l10n.t("(Trelent: Updated Function)"),
                 color: new vscode.ThemeColor('descriptionForeground')
             }
         });
     }
 
-    public applyDocstringRecommendations(functions: DocstringRecommendation[], doc: vscode.TextDocument){
+    public applyDocstringRecommendations(functions: Function[], doc: vscode.TextDocument){
         if(!functions || functions.length === 0){
             return;
         }
@@ -82,80 +46,39 @@ export default class DocstringDecorator implements vscode.Disposable {
             return;
         }
 
-        if(this.updating.has(editor)){
-            return;
-        }
-
         try{
 
-            this.updating.add(editor);
-
             const matchDecorations: {[key: string]: vscode.Range[]} = {};
-            let pushDecorationByRange = (key: string, range: vscode.Range) => {
-                matchDecorations[key] = matchDecorations[key] || [];
-                matchDecorations[key].push(range);
+            let pushDecorationByRange = (key: string, range:  vscode.Range) => {
+                let currDecoration = matchDecorations[key] =  matchDecorations[key] || [];
+                currDecoration.push(range);
             };
 
-            let pushDecorationByPosition = (key: string, position: vscode.Position) => {
-                pushDecorationByRange(key, new vscode.Range(position, position));
+            let pushDecorationByPosition = (key: string, pos: vscode.Position) => {
+                pushDecorationByRange(key, new vscode.Range(pos, pos));
             };
 
-            functions.forEach((docRec) => {
-                if(!docRec.recommendedDocstring){
-                    return;
-                }
+            functions.forEach((func) => {
 
-                const func = docRec.function;
-                const recommendedDocstring = docRec.recommendedDocstring;
-
-                let currentDocstringRange: vscode.Range | null, recommendedDocstringPosition: vscode.Position, currentHeaderPosition: vscode.Position | null, recommendedHeaderPosition: vscode.Position;
-                if(func.docstring_range){
-
-                    //Existing docstring position data
-                    currentDocstringRange =  new vscode.Range(
-                        new vscode.Position(func.docstring_range[0][0], func.docstring_range[0][1]),
-                        new vscode.Position(func.docstring_range[1][0], func.docstring_range[1][1]));
-                        
-                    
-                    const currHeaderPos = doc.offsetAt(currentDocstringRange.end) + 1;
-                    currentHeaderPosition = doc.positionAt(currHeaderPos);
-
-                    //recommended docstring position data
-                    recommendedHeaderPosition = new vscode.Position(currentDocstringRange.start.line, 0);
-                    const recommendedDocstringPos = doc.offsetAt(currentDocstringRange.start) + 1;
-                    recommendedDocstringPosition = doc.positionAt(recommendedDocstringPos);
-
-        
-                }
-                else{
-                    currentDocstringRange = null;
-                    currentHeaderPosition = null;
-
-                    recommendedHeaderPosition = new vscode.Position(func.range[0][0], func.range[0][1]);
-                    const recommendedDocstringPos = doc.offsetAt(recommendedHeaderPosition) + 1;
-                    recommendedDocstringPosition = doc.positionAt(recommendedDocstringPos);
-                }
+                const recommendedHeaderPosition = new vscode.Position(func.definition_line, 0);
+                const recommendedDocstringPos = doc.offsetAt(recommendedHeaderPosition.translate(1, 0));
+                const recommendedDocstringRange = new vscode.Range(doc.positionAt(recommendedDocstringPos), 
+                    new vscode.Position(func.range[1][0], 0));
                 //Insert Decorations
 
-                if(currentDocstringRange){
-                    pushDecorationByRange('current.docstring', currentDocstringRange);
-                    pushDecorationByPosition('current.header', currentHeaderPosition!);
-                }
-                pushDecorationByPosition('recommended.header', recommendedHeaderPosition);
-                pushDecorationByPosition('recommended.docstring', recommendedDocstringPosition);
-        });
+                pushDecorationByPosition('function.header', recommendedHeaderPosition);
+                pushDecorationByRange('function.body', recommendedDocstringRange);
+            });
 
-        Object.keys(matchDecorations).forEach((key) => {
-            const decorationType = this.decorations[key];
-            if(decorationType){
-                editor.setDecorations(decorationType, matchDecorations[key]);
-            }
-        });
+            Object.keys(matchDecorations).forEach((key) => {
+                let decorationType = this.decorations[key];
+                if(decorationType){
+                    editor.setDecorations(decorationType, matchDecorations[key]);
+                }
+            });
+        }
+        finally{}
     }
-    finally{
-        this.updating.delete(editor);
-    }
-}
 
 
     dispose() {

@@ -5,7 +5,7 @@ import { AuthenticationService } from "./services/authenticate";
 import { BillingService } from "./services/billing";
 import { DocsService } from "./services/docs";
 import { ProgressService } from "./services/progress";
-import { TelemetryService } from "./services/telemetry";
+import { createTelemetryService } from "./services/telemetry";
 import { URIService } from "./services/uri";
 import { handleVersionChange } from "./helpers/util";
 import { DevService } from "./services/dev";
@@ -19,7 +19,7 @@ var publicMPToken = "6a946c760957a81165973cc1ad5812ec";
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
   // Setup our Telemetry Service
-  var telemetryService = new TelemetryService(publicMPToken);
+  var telemetryService = createTelemetryService(publicMPToken);
 
   // Handle version changes
   handleVersionChange(context, telemetryService);
@@ -31,7 +31,7 @@ export async function activate(context: vscode.ExtensionContext) {
   var authService = new AuthenticationService(context, telemetryService);
 
   // Setup our CodeParser service
-  const pending = new CodeParserService(context);
+  const pending = new CodeParserService(context, telemetryService);
   var codeParserService = await pending;
 
   //Setup progress Service

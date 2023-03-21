@@ -4,7 +4,8 @@ var md5 = require("md5")
 var levenshtein = require("fast-levenshtein")
 
 export class ChangeDetectionService {
-    fileInfo: {[key: string]: Function[]} = {};
+    fileInfo: {[key: string]: {allFunctions: Function[], updates: {[key: string]: Function[]}}} = {};
+
 
     MAX_TRACKING_SIZE = 100;
 
@@ -13,24 +14,21 @@ export class ChangeDetectionService {
     *  new tree is saved to index 0 of the history
     */
     public trackState(doc: vscode.TextDocument, functions: Function[]){
-        
         let trackID = hashID(doc);
-        let shouldNotify = true;
         if(!(trackID in this.fileInfo)){
-            this.fileInfo[trackID] = [];
-            shouldNotify = false;
+            this.fileInfo[trackID] = {allFunctions: functions, updates: {"new": [], "deleted": [], "updated": []}};
         }
         let updateThese = this.getChangedFunctions(doc, functions);
-        this.fileInfo[trackID] = functions;
+        this.fileInfo[trackID] = {allFunctions: functions, updates: updateThese};
         return updateThese
     }
 
     
-    public getHistory(doc: vscode.TextDocument): Function[] {
+    public getHistory(doc: vscode.TextDocument): {allFunctions: Function[], updates: {[key: string]: Function[]}} {
         let trackID = hashID(doc);
         if(!(trackID in this.fileInfo)){
-            console.log("ERROR: Could not find history with hash (" + trackID + ")");
-            return []
+            console.error("Could not find history with hash (" + trackID + ")");
+            return {allFunctions: [], updates: {"new": [], "deleted": [], "updated": []}};
         }
         return this.fileInfo[trackID];
     }
@@ -42,7 +40,7 @@ export class ChangeDetectionService {
      * @returns 
      */
     public getChangedFunctions(doc: vscode.TextDocument, functions: Function[]): {[key: string]: Function[]}{
-        let history = this.getHistory(doc)
+        let history = this.getHistory(doc).allFunctions
 
         let returnObj: {[key: string]: Function[]} = {
             "new": [], 
@@ -50,13 +48,10 @@ export class ChangeDetectionService {
             "updated": []
         };
 
-        //If we have no history for this file, we should not update documentation
-        if(history.length == 0){
-            return returnObj;
-        }
         //The format of the idMatching object is key: Hash of the name + params, value object with keys "old", and "new"
         let idMatching: {[key: string]: {[key: string]: Function}} = {};
 
+        //Fill idMatching with new functions
         functions.forEach((func) => {
             let id = hashFunction(func);
             if(!(id in idMatching)){
@@ -65,7 +60,7 @@ export class ChangeDetectionService {
             idMatching[id]["new"] = func
         });
 
-        history.forEach((func) => {
+        history.forEach((func: Function) => {
             let id = hashFunction(func);
             if(!(id in idMatching)){
                 idMatching[id] = {};
@@ -114,5 +109,5 @@ export let hashFunction = (func: Function): string => {
 }
 
 export let hashID = (doc: vscode.TextDocument): string => {
-    return md5(doc.uri.toString())
+    return md5(doc.uri.path.toString())
 }
