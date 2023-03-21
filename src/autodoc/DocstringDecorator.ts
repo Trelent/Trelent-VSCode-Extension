@@ -80,6 +80,13 @@ export default class DocstringDecorator implements vscode.Disposable {
         finally{}
     }
 
+    public clearDecorations(editor: vscode.TextEditor){
+        Object.values(this.decorations).forEach((decoration) => {
+            editor.setDecorations(decoration, []);
+        });
+        this.decorations = {};
+    }
+
 
     dispose() {
         Object.keys(this.decorations).forEach(name => {

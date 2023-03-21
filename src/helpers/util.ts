@@ -127,7 +127,7 @@ export function insertDocstrings(
     if (languageId === "python") {
       snippet = new vscode.SnippetString(`${docStr}\n`);
     } else {
-      snippet = new vscode.SnippetString(`\n${docStr}\n`);
+      snippet = new vscode.SnippetString(`${docStr}\n`);
     }
 
     const insertPosition = new vscode.Position(

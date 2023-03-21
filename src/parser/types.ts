@@ -25,3 +25,10 @@ export type DocstringRecommendation = {
   function: Function,
   recommendedDocstring: string
 }
+
+export enum DocTag {
+  AUTO,
+  IGNORE,
+  HIGHLIGHT,
+  NONE
+}
