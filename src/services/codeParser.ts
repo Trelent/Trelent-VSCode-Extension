@@ -81,6 +81,16 @@ export class CodeParserService {
       });
   }
 
+  public parseNoTrack = async(doc: vscode.TextDocument): Promise<Function[]> => {
+    const lang = getLanguageName(doc.languageId, doc.fileName);
+
+    if(!isLanguageSupported(lang)) return [];
+
+    await this.parseText(doc.getText(), lang);
+    let functions = this.getFunctions();
+    return functions;
+  }
+
   public parse = async (doc: vscode.TextDocument) => {
     const lang = getLanguageName(doc.languageId, doc.fileName);
 
@@ -90,6 +100,7 @@ export class CodeParserService {
     await this.parseText(doc.getText(), lang);
     let functions = this.getFunctions();
     return this.changeDetectionService.trackState(doc, functions);
+    
   };
 
   public parseText = async (text: string, lang: string) => {

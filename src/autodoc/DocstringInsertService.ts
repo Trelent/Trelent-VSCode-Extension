@@ -131,6 +131,17 @@ export default class DocstringInsertService{
             let autoFunctions = taggedFunctions.filter(tagFunc => tagFunc.tag == DocTag.AUTO).map(tagFunc => tagFunc.function);
             if(autoFunctions.length > 0){
                 let docstrings = await writeDocstringsFromParsedDocument(this.context, document, autoFunctions, this.telemetryService);
+                let reparseFunctions: Function[] = await this.codeParserService.parseNoTrack(document);
+
+                docstrings.filter((docPair) => {
+                    return reparseFunctions.find(func => hashFunction(func) == hashFunction(docPair.function));
+                }).map((docPair) => {
+                    try{
+                        docPair.function = reparseFunctions.find(func => hashFunction(func) == hashFunction(docPair.function))!;
+                    }
+                    finally{}
+                    
+                })
 
                 let offsetVal = 0;
                 for(let docstring of docstrings){
