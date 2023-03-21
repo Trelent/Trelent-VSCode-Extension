@@ -127,7 +127,6 @@ export default class DocstringInsertService{
             
             
             //Auto document functions
-            //TODO: parse again
             let autoFunctions = taggedFunctions.filter(tagFunc => tagFunc.tag == DocTag.AUTO).map(tagFunc => tagFunc.function);
             if(autoFunctions.length > 0){
                 let docstrings = await writeDocstringsFromParsedDocument(this.context, document, autoFunctions, this.telemetryService);
@@ -145,23 +144,33 @@ export default class DocstringInsertService{
 
                 let offsetVal = 0;
                 for(let docstring of docstrings){
-                    let func = docstring.function;
-                    if(func.docstring_range){
-                        let docstringStartPoint = new vscode.Position(func.docstring_range[0][0], func.docstring_range[0][1]).translate(offsetVal, -offsetVal);
-                        let docstringEndPoint = new vscode.Position(func.docstring_range[1][0], func.docstring_range[1][1]).translate(offsetVal, offsetVal);
-                        let range = new vscode.Range(docstringStartPoint, docstringEndPoint);
-                        let docstringSize = (docstring.docstring.match(/\n/g) || []).length
-                        await editor.insertSnippet(new vscode.SnippetString(""), range).then((success) => {
-                            if(success){
-                                offsetVal -= docstringSize;
-                            }
-                        });
+                    try{
+                        let func = docstring.function;
+                        if(func.docstring_range){
+                            let startPointOffset = document.offsetAt(new vscode.Position(func.docstring_range[0][0] + offsetVal, 0));
+                            let docstringStartPoint = document.positionAt(startPointOffset - 1);
+                            let endPointOffset = document.offsetAt(new vscode.Position(func.docstring_range[1][0] + offsetVal, func.docstring_range[1][1]));
+                            let docstringEndPoint = document.positionAt(endPointOffset);
+                            let range = new vscode.Range(docstringStartPoint, docstringEndPoint);
+                            let docstringSize = (document.getText(range).match(/\n/g) || []).length;
+                            await editor?.edit((editBuilder) => {
+                                editBuilder.replace(range, "");
+                              }).then((success) => {
+                                if(success){
+                                    offsetVal -= docstringSize;
+                                }
+                            });
+                        }
                     }
+                    finally{
+
+                    }
+                    
                 }
 
                 let insertionDocstrings = docstrings.filter((pair) => {return pair.function.docstring_point})
                 .map((docstring) => {
-                    let pos = new vscode.Position(docstring.function.docstring_point![0], docstring.function.docstring_point![1]).translate(offsetVal, 0);
+                    let pos = new vscode.Position(docstring.function.docstring_point![0] + offsetVal, docstring.function.docstring_point![1]);
                         return {
                             docstring: docstring.docstring,
                             point: [pos.line, pos.character],
@@ -169,10 +178,10 @@ export default class DocstringInsertService{
                 });
 
                 await insertDocstrings(insertionDocstrings, editor, document.languageId);
-                
             }
-
-
+        }
+        catch(e){
+            console.log(e);
         }
         finally{
             this.updating.delete(document);
@@ -211,7 +220,4 @@ export default class DocstringInsertService{
         }
         return tagMatching;
     }
-
-    
-
 }

@@ -94,7 +94,7 @@ export function compareDocstringPoints(
   return 0;
 }
 
-export function insertDocstrings(
+export async function insertDocstrings(
   docstrings: any[],
   editor: vscode.TextEditor,
   languageId: string
@@ -107,7 +107,7 @@ export function insertDocstrings(
   // for newly-inserted lines, we aren't mismatching docstring locations
   docstrings.sort(compareDocstringPoints);
 
-  docstrings.forEach((docstring: any) => {
+  for(let docstring of docstrings) {
     let docPoint = docstring["point"];
     let docStr = docstring["docstring"];
 
@@ -123,23 +123,24 @@ export function insertDocstrings(
     // If this is a c-style language, add a newline above the docstring. Otherwise, add one below.
     // This prevents overwriting the line before or after the docstring. Also check if we need an extra
     // line if there is non-whitespace above the insert location.
-    let snippet;
-    if (languageId === "python") {
-      snippet = new vscode.SnippetString(`${docStr}\n`);
-    } else {
-      snippet = new vscode.SnippetString(`${docStr}\n`);
-    }
-
     const insertPosition = new vscode.Position(
       docPoint[0] + insertedLines,
       docPoint[1]
     );
-    editor?.insertSnippet(snippet, insertPosition);
+    
+    //editor?.insertSnippet(snippet, insertPosition);
+    let indent = new vscode.Range(new vscode.Position(insertPosition.line, 0), insertPosition);
+    let indentStr = " ".repeat(editor?.document.getText(indent).length);
+    let snippetStr = (docStr.trimEnd() + "\n").split("\n").join("\n" + indentStr);
+
+    await editor?.edit((editBuilder) => {
+      editBuilder.replace(insertPosition, snippetStr.trimStart());
+    });
 
     // DEBUG
     // console.log(docPoint[0]+insertedLines + " " + docPoint[1]);
 
     const docStrLength = (docStr.match(/\n/g) || []).length + 1;
     insertedLines += docStrLength;
-  });
+  };
 }

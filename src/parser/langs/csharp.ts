@@ -69,10 +69,10 @@ export const parseCSharpFunctions = (
     if(docNodes.length > 0){
         let docText = "";
         docNodes.forEach(docNode => {
-            docText += docNode.text + "\n";
+            docText += docNode.text.trim() + "\n";
         });
         //Chop off trailing newline
-        docText = docText.substring(0, docText.length - 2);
+        docText = docText.trim();
 
         //get docstring position
         func.docstring = docText;
