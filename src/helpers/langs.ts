@@ -1,6 +1,6 @@
 import * as path from "path";
 
-const supportedLangs = ["csharp", "java", "javascript", "python"];
+const supportedLangs = ["csharp", "java", "javascript", "typescript", "python"];
 
 const getExtensionType = (fileName: string) => {
   let ext = path.extname(fileName);
@@ -23,13 +23,15 @@ export function getLanguageName(languageId: string, fileName?: string): string {
 
   const ext = getExtensionType(fileName);
   switch (ext) {
-    case "cs":
+    case ".cs":
       return "csharp";
-    case "js":
+    case ".js":
       return "javascript";
-    case "py":
+    case ".ts":
+      return "typescript";
+    case ".py":
       return "python";
-    case "java":
+    case ".java":
       return "java";
     default:
       return languageId;

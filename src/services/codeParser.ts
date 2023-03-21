@@ -45,11 +45,11 @@ export class CodeParserService {
         this.loadedLanguages.javascript = await Parser.Language.load(
           getGrammarPath(context, "javascript")
         );
-        this.loadedLanguages.python = await Parser.Language.load(
-          getGrammarPath(context, "python")
-        );
         this.loadedLanguages.typescript = await Parser.Language.load(
           getGrammarPath(context, "typescript")
+        );
+        this.loadedLanguages.python = await Parser.Language.load(
+          getGrammarPath(context, "python")
         );
       })
       .then(() => {

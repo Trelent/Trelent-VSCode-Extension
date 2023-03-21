@@ -113,6 +113,9 @@ const jsFuncQuery = `
   ) @function.def
 )`;
 
+// TODO: Are there any differences between typescript and javascript function definitions?
+const tsFuncQuery = jsFuncQuery;
+
 const pythonFuncQuery = `
 (function_definition
   name: (identifier) @function.name
@@ -131,6 +134,6 @@ const funcQeries: any = {
   csharp: csharpFuncQuery,
   java: javaFuncQuery,
   javascript: jsFuncQuery,
+  typescript: tsFuncQuery,
   python: pythonFuncQuery,
-  typescript: jsFuncQuery,
 };

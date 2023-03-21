@@ -75,6 +75,11 @@ let writeDocstring = (
         // Get the current document language
         let languageId = editor.document.languageId;
 
+        // TODO: Remove when backend properly supports TypeScript
+        if (languageId == "typescript") {
+          languageId = "javascript";
+        }
+
         // Get the cursor position
         let cursorPosition = editor.selection.active;
         let documentContent = editor.document.getText();
