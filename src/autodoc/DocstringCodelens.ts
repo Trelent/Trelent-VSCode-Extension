@@ -7,17 +7,22 @@ import * as vscode from "vscode";
 import { Function } from "../parser/types";
 import { CancellationToken } from "vscode";
 
-export default class DocstringCodelens
-  implements vscode.CodeLensProvider, vscode.Disposable
-{
+export default class DocstringCodelens implements vscode.Disposable {
   private codeLensRegistrationHandle?: vscode.Disposable | null;
-  private highlightedFunctions: Function[] = [];
+  private provider: AutodocCodelensProvider;
 
-  constructor() {}
-
-  begin() {
+  constructor() {
     console.log("DocstringCodelens.begin");
-    this.registerCodeLensProvider([]);
+    this.provider = new AutodocCodelensProvider();
+    this.codeLensRegistrationHandle = vscode.languages.registerCodeLensProvider(
+      [
+        { scheme: "file" },
+        { scheme: "vscode-vfs" },
+        { scheme: "untitled" },
+        { scheme: "vscode-userdata" },
+      ],
+      this.provider
+    );
   }
 
   dispose() {
@@ -26,6 +31,19 @@ export default class DocstringCodelens
       this.codeLensRegistrationHandle = null;
     }
   }
+
+  public registerCodeLensProvider(highlightedFunctions: Function[]) {
+    console.log(
+      "DocstringCodelens.registerCodeLensProvider registered for ",
+      highlightedFunctions.length,
+      " functions"
+    );
+    this.provider.highlightedFunctions = highlightedFunctions;
+  }
+}
+
+class AutodocCodelensProvider implements vscode.CodeLensProvider {
+  public highlightedFunctions: Function[] = [];
 
   async provideCodeLenses(
     document: vscode.TextDocument,
@@ -54,23 +72,5 @@ export default class DocstringCodelens
     });
 
     return items;
-  }
-
-  public registerCodeLensProvider(highlightedFunctions: Function[]) {
-    console.log(
-      "DocstringCodelens.registerCodeLensProvider registered for ",
-      highlightedFunctions.length,
-      " functions"
-    );
-    this.highlightedFunctions = highlightedFunctions;
-    this.codeLensRegistrationHandle = vscode.languages.registerCodeLensProvider(
-      [
-        { scheme: "file" },
-        { scheme: "vscode-vfs" },
-        { scheme: "untitled" },
-        { scheme: "vscode-userdata" },
-      ],
-      this
-    );
   }
 }
