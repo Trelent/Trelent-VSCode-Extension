@@ -241,7 +241,11 @@ export default class DocstringInsertService {
     let tagMatching: { function: Function; tag: DocTag }[] = [];
 
     for (let func of functions) {
-      let match = func.body.match(
+      let matchString = func.definition;
+      if (func.docstring) {
+        matchString += func.docstring;
+      }
+      let match = matchString.match(
         new RegExp(
           this.AUTODOC_AUTO_TAG +
             "|" +
