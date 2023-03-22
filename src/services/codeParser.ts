@@ -4,11 +4,7 @@ const Parser = require("web-tree-sitter");
 import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
 import { DocstringRecommendation, Function } from "../parser/types";
-import {
-  ChangeDetectionService,
-  hashFunction,
-  hashID,
-} from "../autodoc/changeDetection";
+import { ChangeDetectionService } from "../autodoc/changeDetection";
 import DocstringInsertService from "../autodoc/DocstringInsertService";
 import { TelemetryService } from "./telemetry";
 
