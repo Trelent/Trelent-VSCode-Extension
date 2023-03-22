@@ -60,9 +60,32 @@ export default class DocstringInsertService {
       }
     );
 
-    vscode.workspace.onDidChangeTextDocument((event) => {
-      this.updateDocstrings(event.document);
-    });
+    vscode.workspace.onDidOpenTextDocument(
+      (event) => {
+        this.updateDocstrings(event);
+      },
+      null,
+      this.context.subscriptions
+    );
+
+    vscode.workspace.onDidChangeTextDocument(
+      (event) => {
+        this.updateDocstrings(event.document);
+      },
+      null,
+      this.context.subscriptions
+    );
+
+    vscode.window.onDidChangeVisibleTextEditors(
+      (e) => {
+        // Any of which could be new (not just the active one).
+        e.forEach((editor) => {
+          this.updateDocstrings(editor.document);
+        });
+      },
+      null,
+      this.context.subscriptions
+    );
   }
 
   public async updateDocstrings(document: vscode.TextDocument) {
