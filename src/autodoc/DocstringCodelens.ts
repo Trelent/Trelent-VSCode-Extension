@@ -55,13 +55,13 @@ class AutodocCodelensProvider implements vscode.CodeLensProvider {
       const updateDocstringCommand: vscode.Command = {
         command: "trelent.autodoc.update",
         title: vscode.l10n.t("Update docstring"),
-        arguments: [func],
+        arguments: [document, func],
       };
 
       const ignoreCommand: vscode.Command = {
         command: "trelent.autodoc.ignore",
         title: vscode.l10n.t("Ignore"),
-        arguments: [func],
+        arguments: [document, func],
       };
 
       const range = document.lineAt(func.range[0][0]).range;

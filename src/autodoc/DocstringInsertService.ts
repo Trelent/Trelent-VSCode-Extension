@@ -16,7 +16,6 @@ export default class DocstringInsertService {
   private telemetryService: TelemetryService;
   private docstringDecorator: DocstringDecorator;
   private docstringCodelens: DocstringCodelens;
-  private provider: vscode.InlineCompletionItemProvider;
 
   private updating = new Set<vscode.TextDocument>();
 
@@ -37,15 +36,30 @@ export default class DocstringInsertService {
     this.docstringCodelens = new DocstringCodelens();
     vscode.commands.registerCommand(
       "trelent.autodoc.update",
-      (functionToUpdate: Function) => {
-        // TODO: Update the docstring for this function.
+      (document: vscode.TextDocument, functionToUpdate: Function) => {
+        const editor = vscode.window.visibleTextEditors.find(
+          (editor) => editor.document === document
+        );
+        if (!editor) {
+          return;
+        }
+        vscode.commands.executeCommand(
+          "trelent.autodoc.ignore",
+          document,
+          functionToUpdate
+        );
+        this.documentFunctions([functionToUpdate], editor, document);
       }
     );
 
     vscode.commands.registerCommand(
       "trelent.autodoc.ignore",
-      (functionToIgnore: Function) => {
-        // TODO: Ignore this function and remove the decorator.
+      (document: vscode.TextDocument, functionToIgnore: Function) => {
+        let funcId = hashFunction(functionToIgnore);
+        let docId = hashID(document);
+        if (this.changedFunctions[docId]) {
+          this.changedFunctions[docId].delete(funcId);
+        }
       }
     );
 
@@ -119,88 +133,11 @@ export default class DocstringInsertService {
       let autoFunctions = taggedFunctions
         .filter((tagFunc) => tagFunc.tag == DocTag.AUTO)
         .map((tagFunc) => tagFunc.function);
-      if (autoFunctions.length > 0) {
-        let docstrings = await writeDocstringsFromParsedDocument(
-          this.context,
-          document,
-          autoFunctions,
-          this.telemetryService
-        );
-        allFunctions = await this.codeParserService.parseNoTrack(document);
-        docstrings
-          .filter((docPair) => {
-            return allFunctions.find(
-              (func) => hashFunction(func) == hashFunction(docPair.function)
-            );
-          })
-          .forEach((docPair) => {
-            try {
-              docPair.function = allFunctions.find(
-                (func) => hashFunction(func) == hashFunction(docPair.function)
-              )!;
-            } finally {
-            }
-          });
-
-        for (let docstring of docstrings) {
-          let func = docstring.function;
-          try {
-            if (func.docstring_range) {
-              let startPointOffset = document.offsetAt(
-                new vscode.Position(func.docstring_range[0][0] + offsetVal, 0)
-              );
-              let docstringStartPoint = document.positionAt(
-                startPointOffset - 1
-              );
-              let endPointOffset = document.offsetAt(
-                new vscode.Position(
-                  func.docstring_range[1][0] + offsetVal,
-                  func.docstring_range[1][1]
-                )
-              );
-              let docstringEndPoint = document.positionAt(endPointOffset);
-              let range = new vscode.Range(
-                docstringStartPoint,
-                docstringEndPoint
-              );
-              let docstringSize = (document.getText(range).match(/\n/g) || [])
-                .length;
-              await editor
-                ?.edit((editBuilder) => {
-                  editBuilder.replace(range, "");
-                })
-                .then((success) => {
-                  if (success) {
-                    offsetVal -= docstringSize;
-                  }
-                });
-            }
-          } finally {
-            this.markAsChanged(document, func);
-          }
-        }
-
-        let insertionDocstrings = docstrings
-          .filter((pair) => {
-            return pair.function.docstring_point;
-          })
-          .map((docstring) => {
-            let pos = new vscode.Position(
-              docstring.function.docstring_point![0] + offsetVal,
-              docstring.function.docstring_point![1]
-            );
-            return {
-              docstring: docstring.docstring,
-              point: [pos.line, pos.character],
-            };
-          });
-
-        offsetVal += await insertDocstrings(
-          insertionDocstrings,
-          editor,
-          document.languageId
-        );
-      }
+      offsetVal += await this.documentFunctions(
+        autoFunctions,
+        editor,
+        document
+      );
     } catch (e) {
       console.log(e);
     } finally {
@@ -211,6 +148,95 @@ export default class DocstringInsertService {
     }
   }
 
+  private async documentFunctions(
+    functions: Function[],
+    editor: vscode.TextEditor,
+    document: vscode.TextDocument
+  ) {
+    let offsetVal = 0;
+    if (functions.length > 0) {
+      let docstrings = await writeDocstringsFromParsedDocument(
+        this.context,
+        document,
+        functions,
+        this.telemetryService
+      );
+      let allFunctions = await this.codeParserService.parseNoTrack(document);
+      docstrings
+        .filter((docPair) => {
+          return allFunctions.find(
+            (func) => hashFunction(func) == hashFunction(docPair.function)
+          );
+        })
+        .forEach((docPair) => {
+          try {
+            docPair.function = allFunctions.find(
+              (func) => hashFunction(func) == hashFunction(docPair.function)
+            )!;
+          } finally {
+          }
+        });
+
+      for (let docstring of docstrings) {
+        let func = docstring.function;
+        try {
+          if (func.docstring_range) {
+            let startPointOffset = document.offsetAt(
+              new vscode.Position(func.docstring_range[0][0] + offsetVal, 0)
+            );
+            let docstringStartPoint = document.positionAt(startPointOffset - 1);
+            let endPointOffset = document.offsetAt(
+              new vscode.Position(
+                func.docstring_range[1][0] + offsetVal,
+                func.docstring_range[1][1]
+              )
+            );
+            let docstringEndPoint = document.positionAt(endPointOffset);
+            let range = new vscode.Range(
+              docstringStartPoint,
+              docstringEndPoint
+            );
+            let docstringSize = (document.getText(range).match(/\n/g) || [])
+              .length;
+            await editor
+              ?.edit((editBuilder) => {
+                editBuilder.replace(range, "");
+              })
+              .then((success) => {
+                if (success) {
+                  offsetVal -= docstringSize;
+                }
+              });
+          }
+        } finally {
+          this.markAsChanged(document, func);
+        }
+      }
+
+      let insertionDocstrings = docstrings
+        .filter((pair) => {
+          return pair.function.docstring_point;
+        })
+        .map((docstring) => {
+          let pos = new vscode.Position(
+            docstring.function.docstring_point![0] + offsetVal,
+            docstring.function.docstring_point![1]
+          );
+          return {
+            docstring: docstring.docstring,
+            point: [pos.line, pos.character],
+          };
+        });
+
+      offsetVal += await insertDocstrings(
+        insertionDocstrings,
+        editor,
+        document.languageId
+      );
+    }
+    this.applyHighlights(document);
+    return offsetVal;
+  }
   private getFunctionTags(
     functions: Function[]
   ): { function: Function; tag: DocTag }[] {
@@ -297,13 +323,15 @@ export default class DocstringInsertService {
 
   private async applyHighlights(
     doc: vscode.TextDocument,
-    allFunctions: Function[],
-    offsetVal: number = 0
+    allFunctions: Function[] | undefined = undefined
   ) {
+    if (!allFunctions) {
+      allFunctions = await this.codeParserService.parseNoTrack(doc);
+    }
     let docId = hashID(doc);
     //Get tagged functions
     let functionsToDocument: Function[] = [...this.changedFunctions[docId]].map(
-      (funcId) => allFunctions.find((func) => hashFunction(func) == funcId)!
+      (funcId) => allFunctions?.find((func) => hashFunction(func) == funcId)!
     );
 
     let taggedFunctions = this.getFunctionTags(functionsToDocument);
@@ -315,8 +343,7 @@ export default class DocstringInsertService {
     if (highlightFunctions.length > 0) {
       this.docstringDecorator.applyDocstringRecommendations(
         highlightFunctions,
-        doc,
-        offsetVal
+        doc
       );
     } else {
       this.docstringDecorator.clearDecorations(doc);
