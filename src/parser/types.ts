@@ -19,16 +19,11 @@ export type QueryGroup = {
   paramsNode: SyntaxNode;
   bodyNode: SyntaxNode;
   docNodes: SyntaxNode[];
-}
-
-export type DocstringRecommendation = {
-  function: Function,
-  recommendedDocstring: string
-}
+};
 
 export enum DocTag {
   AUTO,
   IGNORE,
   HIGHLIGHT,
-  NONE
+  NONE,
 }

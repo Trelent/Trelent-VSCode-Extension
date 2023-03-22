@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 const Parser = require("web-tree-sitter");
 import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
-import { DocstringRecommendation, Function } from "../parser/types";
+import { Function } from "../parser/types";
 import { ChangeDetectionService } from "../autodoc/changeDetection";
 import DocstringInsertService from "../autodoc/DocstringInsertService";
 import { TelemetryService } from "./telemetry";
@@ -18,9 +18,6 @@ const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
 
 export class CodeParserService {
   //Format: First key is file uri hash, second key is function name + params hash, value is recommended docstring
-  recommendedDocstrings: {
-    [key: string]: { [key: string]: DocstringRecommendation };
-  } = {};
   parser: any;
   loadedLanguages: any = {
     csharp: null,

@@ -241,7 +241,7 @@ export default class DocstringInsertService {
     let tagMatching: { function: Function; tag: DocTag }[] = [];
 
     for (let func of functions) {
-      let matchString = func.definition;
+      let matchString = func.text;
       if (func.docstring) {
         matchString += func.docstring;
       }

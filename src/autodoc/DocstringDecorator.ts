@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
-import { DocstringRecommendation, Function } from "../parser/types";
-import { CodeParserService } from "../services/codeParser";
+import { Function } from "../parser/types";
 
 export default class DocstringDecorator implements vscode.Disposable {
   private decorations: { [key: string]: vscode.TextEditorDecorationType } = {};
