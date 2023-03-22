@@ -148,7 +148,7 @@ export default class DocstringInsertService {
     }
   }
 
-  private async documentFunctions(
+  public async documentFunctions(
     functions: Function[],
     editor: vscode.TextEditor,
     document: vscode.TextDocument
@@ -237,6 +237,7 @@ export default class DocstringInsertService {
     this.applyHighlights(document);
     return offsetVal;
   }
+
   private getFunctionTags(
     functions: Function[]
   ): { function: Function; tag: DocTag }[] {
