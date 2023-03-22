@@ -69,8 +69,8 @@ export class CodeParserService {
           getGrammarPath(context, "typescript")
         );
       })
-      .then(() => {
-        this.parser = new Parser();
+      .then(async () => {
+        this.parser = await new Parser();
 
         // Now parse when the active editor changes, a document is saved, or a document is opened
         vscode.window.onDidChangeActiveTextEditor(
@@ -132,3 +132,19 @@ export class CodeParserService {
     return this.parsedFunctions;
   }
 }
+
+let service: CodeParserService | undefined;
+
+export let createCodeParserService = async (
+  context: vscode.ExtensionContext,
+  telemetryService: TelemetryService
+) => {
+  if (!service) {
+    service = await new CodeParserService(context, telemetryService);
+  }
+  return service!;
+};
+
+export let getCodeParserService = () => {
+  return service!;
+};

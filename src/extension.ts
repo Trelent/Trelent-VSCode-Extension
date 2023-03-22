@@ -10,7 +10,10 @@ import { URIService } from "./services/uri";
 import { handleVersionChange } from "./helpers/util";
 import { DevService } from "./services/dev";
 import { openWebView } from "./helpers/webview";
-import { CodeParserService } from "./services/codeParser";
+import {
+  CodeParserService,
+  createCodeParserService,
+} from "./services/codeParser";
 
 // Mixpanel Public Token
 var publicMPToken = "6a946c760957a81165973cc1ad5812ec";
@@ -31,8 +34,10 @@ export async function activate(context: vscode.ExtensionContext) {
   var authService = new AuthenticationService(context, telemetryService);
 
   // Setup our CodeParser service
-  const pending = new CodeParserService(context, telemetryService);
-  var codeParserService = await pending;
+  var codeParserService = await createCodeParserService(
+    context,
+    telemetryService
+  );
 
   //Setup progress Service
   var progressService = new ProgressService(context, codeParserService);
@@ -58,7 +63,6 @@ export async function activate(context: vscode.ExtensionContext) {
   // Dispose of our command registration
   context.subscriptions.push(helpCmd);
   (global as any).testExtensionContext = context;
-
 }
 
 // this method is called when your extension is deactivated
