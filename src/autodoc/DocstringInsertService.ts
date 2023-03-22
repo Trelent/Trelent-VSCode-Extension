@@ -1,10 +1,7 @@
 import * as vscode from "vscode";
 import { CodeParserService } from "../services/codeParser";
-import { DocTag, DocstringRecommendation, Function } from "../parser/types";
-import {
-  DocsService,
-  writeDocstringsFromParsedDocument,
-} from "../services/docs";
+import { DocTag, Function } from "../parser/types";
+import { writeDocstringsFromParsedDocument } from "../services/docs";
 import { TelemetryService } from "../services/telemetry";
 import { hashFunction, hashID } from "./changeDetection";
 import DocstringDecorator from "./DocstringDecorator";

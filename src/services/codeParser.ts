@@ -4,7 +4,11 @@ const Parser = require("web-tree-sitter");
 import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
 import { DocstringRecommendation, Function } from "../parser/types";
-import { ChangeDetectionService, hashFunction, hashID } from "../autodoc/changeDetection";
+import {
+  ChangeDetectionService,
+  hashFunction,
+  hashID,
+} from "../autodoc/changeDetection";
 import DocstringInsertService from "../autodoc/DocstringInsertService";
 import { TelemetryService } from "./telemetry";
 
@@ -18,24 +22,33 @@ const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
 
 export class CodeParserService {
   //Format: First key is file uri hash, second key is function name + params hash, value is recommended docstring
-  recommendedDocstrings: { [key: string]: {[key: string]: DocstringRecommendation} } = {};
+  recommendedDocstrings: {
+    [key: string]: { [key: string]: DocstringRecommendation };
+  } = {};
   parser: any;
   loadedLanguages: any = {
     csharp: null,
     java: null,
     javascript: null,
     python: null,
-    typescript: null
+    typescript: null,
   };
   parsedFunctions: Function[] = [];
   changeDetectionService: ChangeDetectionService;
   autodocService: DocstringInsertService;
   telemetryService: TelemetryService;
 
-  constructor(context: vscode.ExtensionContext, telemetryService: TelemetryService) {
+  constructor(
+    context: vscode.ExtensionContext,
+    telemetryService: TelemetryService
+  ) {
     this.telemetryService = telemetryService;
     this.changeDetectionService = new ChangeDetectionService();
-    this.autodocService = new DocstringInsertService(context, this, telemetryService);
+    this.autodocService = new DocstringInsertService(
+      context,
+      this,
+      telemetryService
+    );
     // Initialize our TS Parser
     return Parser.init({
       locateFile(scriptName: string, scriptDirectory: string) {
@@ -65,7 +78,7 @@ export class CodeParserService {
       })
       .then(() => {
         this.parser = new Parser();
-        
+
         // Now parse when the active editor changes, a document is saved, or a document is opened
         vscode.window.onDidChangeActiveTextEditor(
           (editor: vscode.TextEditor | undefined) => {
@@ -75,21 +88,23 @@ export class CodeParserService {
             }
           }
         );
-      //  vscode.workspace.onDidSaveTextDocument(this.parse);
-      //  vscode.workspace.onDidOpenTextDocument(this.parse);
+        //  vscode.workspace.onDidSaveTextDocument(this.parse);
+        //  vscode.workspace.onDidOpenTextDocument(this.parse);
         return this;
       });
   }
 
-  public parseNoTrack = async(doc: vscode.TextDocument): Promise<Function[]> => {
+  public parseNoTrack = async (
+    doc: vscode.TextDocument
+  ): Promise<Function[]> => {
     const lang = getLanguageName(doc.languageId, doc.fileName);
 
-    if(!isLanguageSupported(lang)) return [];
+    if (!isLanguageSupported(lang)) return [];
 
     await this.parseText(doc.getText(), lang);
     let functions = this.getFunctions();
     return functions;
-  }
+  };
 
   public parse = async (doc: vscode.TextDocument) => {
     const lang = getLanguageName(doc.languageId, doc.fileName);
@@ -99,13 +114,15 @@ export class CodeParserService {
 
     await this.parseText(doc.getText(), lang);
     let functions = this.getFunctions();
+    if (functions.length == 0) {
+      return {};
+    }
     return this.changeDetectionService.trackState(doc, functions);
-    
   };
 
   public parseText = async (text: string, lang: string) => {
     if (!this.loadedLanguages[lang]) return;
-    if (!this.parser) return; 
+    if (!this.parser) return;
     await parseText(text, this.loadedLanguages[lang], this.parser)
       .then((tree) => {
         return parseFunctions(tree, lang, this.loadedLanguages[lang]);
@@ -116,7 +133,7 @@ export class CodeParserService {
       .catch((err) => {
         console.error(err);
       });
-  }
+  };
 
   public getFunctions() {
     return this.parsedFunctions;
