@@ -26,14 +26,17 @@ export default class DocstringDecorator implements vscode.Disposable {
             
         });
 
-        this.decorations['function.header'] = vscode.window.createTextEditorDecorationType({
-            backgroundColor: new vscode.ThemeColor('trelent.autodoc.functionHeadColor'),
+        this.decorations["function.header"] =
+          vscode.window.createTextEditorDecorationType({
+            backgroundColor: new vscode.ThemeColor(
+              "trelent.autodoc.functionHeadColor"
+            ),
             isWholeLine: this.decorationUsesWholeLine,
             after: {
-                contentText: ' ' + vscode.l10n.t("(Trelent: Updated Function)"),
-                color: new vscode.ThemeColor('descriptionForeground')
-            }
-        });
+              contentText: " " + vscode.l10n.t("(Trelent: Outdated docstring)"),
+              color: new vscode.ThemeColor("descriptionForeground"),
+            },
+          });
     }
 
     public applyDocstringRecommendations(functions: Function[], doc: vscode.TextDocument){
