@@ -219,7 +219,7 @@ export default class DocstringInsertService {
       console.log(e);
     } finally {
       allFunctions = await this.codeParserService.parseNoTrack(document);
-      this.applyHighlights(document, allFunctions, offsetVal);
+      this.applyHighlights(document, allFunctions);
       this.updating.delete(document);
       return {};
     }
