@@ -36,7 +36,7 @@ export default class DocstringDecorator implements vscode.Disposable {
         });
     }
 
-    public applyDocstringRecommendations(functions: Function[], doc: vscode.TextDocument){
+    public applyDocstringRecommendations(functions: Function[], doc: vscode.TextDocument, offsetVal: number = 0){
         if(!functions || functions.length === 0){
             return;
         }
@@ -60,10 +60,10 @@ export default class DocstringDecorator implements vscode.Disposable {
 
             functions.forEach((func) => {
 
-                const recommendedHeaderPosition = new vscode.Position(func.definition_line, 0);
-                const recommendedDocstringPos = doc.offsetAt(recommendedHeaderPosition.translate(1, 0));
-                const recommendedDocstringRange = new vscode.Range(doc.positionAt(recommendedDocstringPos), 
-                    new vscode.Position(func.range[1][0], 0));
+                let recommendedHeaderPosition = new vscode.Position(func.definition_line + offsetVal, 0);
+                let recommendedDocstringPos = doc.offsetAt(recommendedHeaderPosition.translate(1, 0));
+                let recommendedDocstringRange = new vscode.Range(doc.positionAt(recommendedDocstringPos), 
+                    new vscode.Position(func.range[1][0] + offsetVal, 0));
                 //Insert Decorations
 
                 pushDecorationByPosition('function.header', recommendedHeaderPosition);
@@ -80,11 +80,14 @@ export default class DocstringDecorator implements vscode.Disposable {
         finally{}
     }
 
-    public clearDecorations(editor: vscode.TextEditor){
+    public clearDecorations(doc: vscode.TextDocument){
+        const editor = vscode.window.visibleTextEditors.find((editor) => editor.document === doc);
+        if(!editor){
+            return;
+        }
         Object.values(this.decorations).forEach((decoration) => {
             editor.setDecorations(decoration, []);
         });
-        this.decorations = {};
     }
 
 

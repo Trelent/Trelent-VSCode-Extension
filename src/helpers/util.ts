@@ -140,7 +140,9 @@ export async function insertDocstrings(
     // DEBUG
     // console.log(docPoint[0]+insertedLines + " " + docPoint[1]);
 
-    const docStrLength = (docStr.match(/\n/g) || []).length + 1;
+    const docStrLength = (snippetStr.match(/\n/g) || []).length;
     insertedLines += docStrLength;
+    
   };
+  return insertedLines;
 }
