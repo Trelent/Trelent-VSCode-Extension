@@ -49,23 +49,9 @@ export default class DocstringInsertService {
       }
     );
 
-    //Provider will insert InlineCompletionItems to display recommended docstrings
-    this.provider = {
-      //@ts-ignore
-      provideInlineCompletionItems: async (
-        document,
-        position,
-        context,
-        token
-      ) => {
-        return this.updateDocstrings(document);
-      },
-    };
-
-    vscode.languages.registerInlineCompletionItemProvider(
-      { pattern: "**" },
-      this.provider
-    );
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      this.updateDocstrings(event.document);
+    });
   }
 
   public async updateDocstrings(document: vscode.TextDocument) {
