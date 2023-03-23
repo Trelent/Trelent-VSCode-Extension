@@ -166,23 +166,12 @@ export default class DocstringInsertService {
         .filter((tagFunc) => tagFunc.tag == DocTag.AUTO)
         .map((tagFunc) => tagFunc.function);
 
-      // We want to make sure that the user isn't typing rapidly as we
-      // update the docstrings, so let's wait a bit before we do anything.
-      let currentDocumentHash = md5(document.getText());
-      setTimeout(async () => {
-        let newDocumentHash = md5(document.getText());
-        if (currentDocumentHash != newDocumentHash) {
-          // The document has changed, so we should just return early.
-          return;
-        }
-
-        // Check if any
-        offsetVal += await this.documentFunctions(
-          autoFunctions,
-          editor,
-          document
-        );
-      }, 500);
+      // Check if any
+      offsetVal += await this.documentFunctions(
+        autoFunctions,
+        editor,
+        document
+      );
     } catch (e) {
       console.log(e);
     } finally {
