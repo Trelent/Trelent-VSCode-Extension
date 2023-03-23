@@ -51,6 +51,8 @@ export default class DocstringInsertService {
       this.context.subscriptions
     );
 
+    let timeoutId: NodeJS.Timeout | undefined = undefined;
+
     vscode.workspace.onDidChangeTextDocument(
       (event: vscode.TextDocumentChangeEvent) => {
         this.updateDocstrings(event.document);
