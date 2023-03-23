@@ -34,81 +34,53 @@ export class DocsService {
   }
 }
 
-let writeDocstring = (
+let writeDocstring = async (
   context: vscode.ExtensionContext,
   parser: CodeParserService,
   telemetry: TelemetryService
 ) => {
-  // Initialize a progress bar
-  vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: "Writing docstring...",
-    },
-    async () => {
-      const writeDocstring = new Promise(async (resolve, reject) => {
-        // Check if telemetry is too strict
-        if (!telemetry.canSendServerData()) {
-          vscode.window.showErrorMessage(
-            "Due to your telemetry settings, we cannot " +
-              "fulfill your request."
-          );
-          return resolve("Failure");
-        }
+  // Check if telemetry is too strict
+  if (!telemetry.canSendServerData()) {
+    vscode.window.showErrorMessage(
+      "Due to your telemetry settings, we cannot " + "fulfill your request."
+    );
+    return;
+  }
 
-        // Get the editor instance
-        let editor = vscode.window.activeTextEditor;
-        if (editor == undefined) {
-          vscode.window.showErrorMessage("You don't have an editor open.");
-          return resolve("Failure");
-        }
+  // Get the editor instance
+  let editor = vscode.window.activeTextEditor;
+  if (editor == undefined) {
+    vscode.window.showErrorMessage("You don't have an editor open.");
+    return;
+  }
 
-        if (!isLanguageSupported(editor.document.languageId)) {
-          vscode.window.showErrorMessage("We don't support that language.");
-          return resolve("Failure");
-        }
+  if (!isLanguageSupported(editor.document.languageId)) {
+    vscode.window.showErrorMessage("We don't support that language.");
+    return;
+  }
 
-        //Parse document
-        await parser.parse(editor.document);
+  //Parse document
+  await parser.parse(editor.document);
 
-        // Get the cursor position
-        let cursorPosition = editor.selection.active;
+  // Get the cursor position
+  let cursorPosition = editor.selection.active;
 
-        // Get currently selected function
-        let functions = parser.getFunctions();
+  // Get currently selected function
+  let functions = parser.getFunctions();
 
-        // Check if our cursor is within any of those functions
-        let currentFunction = isCursorWithinFunction(cursorPosition, functions);
-        if (currentFunction == undefined) {
-          vscode.window.showErrorMessage(
-            "We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit."
-          );
-          return resolve("Failure");
-        }
+  // Check if our cursor is within any of those functions
+  let currentFunction = isCursorWithinFunction(cursorPosition, functions);
+  if (currentFunction == undefined) {
+    vscode.window.showErrorMessage(
+      "We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit."
+    );
+    return;
+  }
 
-        parser.autodocService
-          .documentFunctions([currentFunction], editor, editor.document)
-          .then((docstrings) => {
-            if (docstrings > 0) {
-              return resolve("Success");
-            }
-            return resolve("Failure");
-          });
-      });
-
-      const timeout = new Promise((resolve, reject) => {
-        setTimeout(() => {
-          resolve("Timeout");
-        }, 30000);
-      });
-
-      const winner = await Promise.race([writeDocstring, timeout]);
-      if (winner === "Timeout") {
-        vscode.window.showErrorMessage(
-          "Trelent is experiencing high load at the moment. Please try again in a few seconds. If you continue to experience this issue, please contact us at contact@trelent.net"
-        );
-      }
-    }
+  vscode.commands.executeCommand(
+    "trelent.autodoc.update",
+    editor.document,
+    currentFunction
   );
 };
 

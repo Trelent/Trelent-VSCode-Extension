@@ -40,20 +40,24 @@ export default class DocstringInsertService {
       vscode.StatusBarAlignment.Right,
       9999
     );
-    this.documentationWidget.text = "$(trelent-dark)";
+
+    this.widgetLoadingState(false);
     context.subscriptions.push(this.documentationWidget);
     this.documentationWidget.show();
+
     // Register the update and ignore commands for our codelens
     vscode.commands.registerCommand(
       "trelent.autodoc.update",
       this.onAutodocUpdate,
       this
     );
+
     vscode.commands.registerCommand(
       "trelent.autodoc.ignore",
       this.onAutodocIgnore,
       this
     );
+
     // Now make sure we listen to all the ways a document can change
     vscode.workspace.onDidOpenTextDocument(
       (changedDocument: vscode.TextDocument) => {
@@ -105,14 +109,12 @@ export default class DocstringInsertService {
       return;
     }
 
-    vscode.commands
-      .executeCommand("trelent.autodoc.ignore", document, functionToUpdate)
-      .then(() => {
-        this.widgetLoadingState(true);
-      });
-    this.documentFunctions([functionToUpdate], editor, document).then(() => {
-      this.widgetLoadingState(false);
-    });
+    vscode.commands.executeCommand(
+      "trelent.autodoc.ignore",
+      document,
+      functionToUpdate
+    );
+    this.documentFunctions([functionToUpdate], editor, document);
   }
 
   private onAutodocIgnore(
@@ -205,91 +207,100 @@ export default class DocstringInsertService {
     editor: vscode.TextEditor,
     document: vscode.TextDocument
   ) {
+    this.widgetLoadingState(true);
     let offsetVal = 0;
-    if (functions.length > 0) {
-      let docstrings = await writeDocstringsFromParsedDocument(
-        this.context,
-        document,
-        functions,
-        this.telemetryService
-      );
-      let allFunctions = await this.codeParserService.parseNoTrack(document);
-      docstrings
-        .filter((docPair) => {
-          return allFunctions.find(
-            (func) => hashFunction(func) == hashFunction(docPair.function)
-          );
-        })
-        .forEach((docPair) => {
-          try {
-            docPair.function = allFunctions.find(
+    try {
+      if (functions.length > 0) {
+        let docstrings = await writeDocstringsFromParsedDocument(
+          this.context,
+          document,
+          functions,
+          this.telemetryService
+        );
+        let allFunctions = await this.codeParserService.parseNoTrack(document);
+        docstrings
+          .filter((docPair) => {
+            return allFunctions.find(
               (func) => hashFunction(func) == hashFunction(docPair.function)
-            )!;
+            );
+          })
+          .forEach((docPair) => {
+            try {
+              docPair.function = allFunctions.find(
+                (func) => hashFunction(func) == hashFunction(docPair.function)
+              )!;
+            } finally {
+            }
+          });
+
+        for (let docstring of docstrings) {
+          let func = docstring.function;
+          try {
+            if (func.docstring_range) {
+              let startPointOffset = document.offsetAt(
+                new vscode.Position(func.docstring_range[0][0] + offsetVal, 0)
+              );
+              let docstringStartPoint = document.positionAt(
+                startPointOffset - 1
+              );
+              let endPointOffset = document.offsetAt(
+                new vscode.Position(
+                  func.docstring_range[1][0] + offsetVal,
+                  func.docstring_range[1][1]
+                )
+              );
+              let docstringEndPoint = document.positionAt(endPointOffset);
+              let range = new vscode.Range(
+                docstringStartPoint,
+                docstringEndPoint
+              );
+              let docstringSize = (document.getText(range).match(/\n/g) || [])
+                .length;
+              await editor
+                ?.edit((editBuilder) => {
+                  editBuilder.replace(range, "");
+                })
+                .then((success) => {
+                  if (success) {
+                    offsetVal -= docstringSize;
+                  }
+                });
+            }
           } finally {
+            this.markAsChanged(document, func);
           }
-        });
-
-      for (let docstring of docstrings) {
-        let func = docstring.function;
-        try {
-          if (func.docstring_range) {
-            let startPointOffset = document.offsetAt(
-              new vscode.Position(func.docstring_range[0][0] + offsetVal, 0)
-            );
-            let docstringStartPoint = document.positionAt(startPointOffset - 1);
-            let endPointOffset = document.offsetAt(
-              new vscode.Position(
-                func.docstring_range[1][0] + offsetVal,
-                func.docstring_range[1][1]
-              )
-            );
-            let docstringEndPoint = document.positionAt(endPointOffset);
-            let range = new vscode.Range(
-              docstringStartPoint,
-              docstringEndPoint
-            );
-            let docstringSize = (document.getText(range).match(/\n/g) || [])
-              .length;
-            await editor
-              ?.edit((editBuilder) => {
-                editBuilder.replace(range, "");
-              })
-              .then((success) => {
-                if (success) {
-                  offsetVal -= docstringSize;
-                }
-              });
-          }
-        } finally {
-          this.markAsChanged(document, func);
         }
+
+        let insertionDocstrings = docstrings
+          .filter((pair) => {
+            return pair.function.docstring_point;
+          })
+          .map((docstring) => {
+            let pos = new vscode.Position(
+              docstring.function.docstring_point![0] + offsetVal,
+              docstring.function.docstring_point![1]
+            );
+            return {
+              docstring: docstring.docstring,
+              point: [pos.line, pos.character],
+            };
+          });
+
+        offsetVal += await insertDocstrings(
+          insertionDocstrings,
+          editor,
+          document.languageId
+        );
       }
+      this.widgetLoadingState(false);
+    } catch (e) {
+      this.widgetLoadingState(false, true);
+    } finally {
+      // TODO: We probably want to do this somewhere else?
+      this.applyHighlights(document);
 
-      let insertionDocstrings = docstrings
-        .filter((pair) => {
-          return pair.function.docstring_point;
-        })
-        .map((docstring) => {
-          let pos = new vscode.Position(
-            docstring.function.docstring_point![0] + offsetVal,
-            docstring.function.docstring_point![1]
-          );
-          return {
-            docstring: docstring.docstring,
-            point: [pos.line, pos.character],
-          };
-        });
-
-      offsetVal += await insertDocstrings(
-        insertionDocstrings,
-        editor,
-        document.languageId
-      );
+      return offsetVal;
     }
-
-    // TODO: We probably want to do this somewhere else?
-    this.applyHighlights(document);
-    return offsetVal;
   }
 
   private getFunctionTags(
@@ -414,9 +425,32 @@ export default class DocstringInsertService {
     return docId;
   }
 
-  private widgetLoadingState(parsing: boolean) {
-    this.documentationWidget.text = parsing
+  private widgetLoadingState(
+    documenting: boolean,
+    error: boolean = false,
+    errorMessage?: string
+  ) {
+    if (error) {
+      this.widgetErrorState(errorMessage ? errorMessage : "Error Documenting!");
+      return;
+    }
+    this.documentationWidget.backgroundColor = new vscode.ThemeColor(
+      documenting
+        ? "statusBarItem.hoverBackground"
+        : "statusBarItem.remoteBackground"
+    );
+    this.documentationWidget.text = documenting
       ? "$(sync~spin)"
       : "$(trelent-dark)";
+    this.documentationWidget.tooltip = documenting
+      ? "Documenting..."
+      : "Trelent Documentation";
+  }
+
+  private widgetErrorState(errMsg: string) {
+    this.documentationWidget.backgroundColor = new vscode.ThemeColor(
+      "statusBarItem.errorBackground"
+    );
+    this.documentationWidget.tooltip = errMsg;
   }
 }
