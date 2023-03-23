@@ -384,7 +384,7 @@ export default class DocstringInsertService {
     let highlightFunctions = taggedFunctions
       .filter((tagFunc) => tagFunc.tag == DocTag.HIGHLIGHT)
       .map((tagFunc) => tagFunc.function);
-    this.docstringCodelens.registerCodeLensProvider(highlightFunctions);
+    this.docstringCodelens.updateCodeLenses(highlightFunctions);
     if (highlightFunctions.length > 0) {
       this.docstringDecorator.applyDocstringRecommendations(
         highlightFunctions,

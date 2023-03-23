@@ -27,17 +27,24 @@ export default class DocstringCodelens implements vscode.Disposable {
     }
   }
 
-  public registerCodeLensProvider(highlightedFunctions: Function[]) {
+  public updateCodeLenses(highlightedFunctions: Function[]) {
     console.log(
       "DocstringCodelens.registerCodeLensProvider registered for ",
       highlightedFunctions.length,
       " functions"
     );
     this.provider.highlightedFunctions = highlightedFunctions;
+    this.provider.reload();
   }
 }
 
 class AutodocCodelensProvider implements vscode.CodeLensProvider {
+  private readonly _onChangeCodeLensesEmitter = new vscode.EventEmitter<void>();
+  readonly onDidChangeCodeLenses = this._onChangeCodeLensesEmitter.event;
+
+  reload() {
+    this._onChangeCodeLensesEmitter.fire();
+  }
   public highlightedFunctions: Function[] = [];
 
   async provideCodeLenses(
