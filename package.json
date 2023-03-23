@@ -148,7 +148,7 @@
           ],
           "enumDescriptions": [
             "-----\nWe will look for functions that are specifically marked with the \"@trelent-highlight\" tag, and highlight those with outdated docstrings.\n\nFunctions marked with the \"@trelent-auto\" tag will have their docstrings automatically kept up to date, replacing them in-place, with no manual action required.",
-            "-----\nWe will highlight all functions with outdated docstrings, but we will skip those with the \"@trelent-ignore\" tag.\n\nFunctions marked with the \"@trelent-auto\" tag will have their docstrings automatically kept up to date, replacing them in-place, with no manual action required.",
+            "-----\nWe will highlight all functions with outdated docstrings, except for those with the \"@trelent-ignore\" tag.\n\nFunctions marked with the \"@trelent-auto\" tag will have their docstrings automatically kept up to date, replacing them in-place, with no manual action required.",
             "-----\nWe will automatically keep all outdated docstrings up to date, replacing them in-place, with no manual action required.\n\nWe will skip those with the \"@trelent-ignore\" or \"@trelent-highlight\" tag."
           ],
           "description": "Defines whether we should automatically keep docstrings up to date, highlight old ones, or do either of these using comments. Please read each description carefully."
