@@ -181,7 +181,16 @@
           "light": "#63B9D622"
         }
       }
-    ]
+    ],
+    "icons": {
+      "trelent-dark":{
+        "description": "Trelent icon",
+        "default": {
+          "fontPath": "./assets/icons/trelent.woff",
+          "fontCharacter": "\\1f5ff"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "./buildAll.sh",

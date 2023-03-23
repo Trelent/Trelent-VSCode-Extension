@@ -28,11 +28,6 @@ export default class DocstringCodelens implements vscode.Disposable {
   }
 
   public updateCodeLenses(highlightedFunctions: Function[]) {
-    console.log(
-      "DocstringCodelens.registerCodeLensProvider registered for ",
-      highlightedFunctions.length,
-      " functions"
-    );
     this.provider.highlightedFunctions = highlightedFunctions;
     this.provider.reload();
   }

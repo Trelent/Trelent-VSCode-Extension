@@ -13,6 +13,7 @@ export default class DocstringInsertService {
   private telemetryService: TelemetryService;
   private docstringDecorator: DocstringDecorator;
   private docstringCodelens: DocstringCodelens;
+  private documentationWidget: vscode.StatusBarItem;
 
   private updating = new Set<vscode.TextDocument>();
 
@@ -33,6 +34,15 @@ export default class DocstringInsertService {
     this.docstringDecorator = new DocstringDecorator();
     this.docstringCodelens = new DocstringCodelens();
 
+    //Create documentation widget
+    this.documentationWidget = vscode.window.createStatusBarItem(
+      "trelent.document",
+      vscode.StatusBarAlignment.Right,
+      9999
+    );
+    this.documentationWidget.text = "$(trelent-dark)";
+    context.subscriptions.push(this.documentationWidget);
+    this.documentationWidget.show();
     // Register the update and ignore commands for our codelens
     vscode.commands.registerCommand(
       "trelent.autodoc.update",
@@ -94,12 +104,15 @@ export default class DocstringInsertService {
     if (!editor) {
       return;
     }
-    vscode.commands.executeCommand(
-      "trelent.autodoc.ignore",
-      document,
-      functionToUpdate
-    );
-    this.documentFunctions([functionToUpdate], editor, document);
+
+    vscode.commands
+      .executeCommand("trelent.autodoc.ignore", document, functionToUpdate)
+      .then(() => {
+        this.widgetLoadingState(true);
+      });
+    this.documentFunctions([functionToUpdate], editor, document).then(() => {
+      this.widgetLoadingState(false);
+    });
   }
 
   private onAutodocIgnore(
@@ -114,7 +127,7 @@ export default class DocstringInsertService {
     this.applyHighlights(document);
   }
 
-  public async updateDocstrings(document: vscode.TextDocument) {
+  private async updateDocstrings(document: vscode.TextDocument) {
     const editor = vscode.window.visibleTextEditors.find(
       (editor) => editor.document === document
     );
@@ -167,7 +180,7 @@ export default class DocstringInsertService {
       let taggedFunctions = this.getFunctionTags(functionsToDocument);
       if (taggedFunctions.length == 0) {
         this.updating.delete(document);
-        return [];
+        return;
       }
 
       // Get functions to be documented, and proceed
@@ -180,13 +193,10 @@ export default class DocstringInsertService {
         editor,
         document
       );
-    } catch (e) {
-      console.log(e);
     } finally {
       allFunctions = await this.codeParserService.parseNoTrack(document);
       this.applyHighlights(document, allFunctions);
       this.updating.delete(document);
-      return {};
     }
   }
 
@@ -402,5 +412,11 @@ export default class DocstringInsertService {
       this.changedFunctions[docId] = new Set();
     }
     return docId;
+  }
+
+  private widgetLoadingState(parsing: boolean) {
+    this.documentationWidget.text = parsing
+      ? "$(sync~spin)"
+      : "$(trelent-dark)";
   }
 }
