@@ -70,7 +70,6 @@ export default class DocstringInsertService {
     let timeoutId: NodeJS.Timeout | undefined = undefined;
     vscode.workspace.onDidChangeTextDocument(
       (event: vscode.TextDocumentChangeEvent) => {
-        event.contentChanges;
         if (timeoutId) {
           clearTimeout(timeoutId);
         }
