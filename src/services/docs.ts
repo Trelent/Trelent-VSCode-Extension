@@ -71,12 +71,8 @@ let writeDocstring = (
         //Parse document
         await parser.parse(editor.document);
 
-        // Get the current document language
-        let languageId = editor.document.languageId;
-
         // Get the cursor position
         let cursorPosition = editor.selection.active;
-        let documentContent = editor.document.getText();
 
         // Get currently selected function
         let functions = parser.getFunctions();
@@ -167,6 +163,9 @@ export let writeDocstringsFromParsedDocument = async (
   }
 
   let languageId = editor.document.languageId;
+  if (languageId == "typescript") {
+    languageId = "javascript";
+  }
 
   let documentContent = editor.document.getText();
 
