@@ -42,7 +42,7 @@ suite("Typescript parser tests", () => {
       )
     );
     codeFile = fs.readFileSync(filePath, "utf8");
-    await codeParserService.parseText(codeFile, LANG);
+    await codeParserService.safeParseText(codeFile, LANG);
     functions = codeParserService.getFunctions();
   });
 

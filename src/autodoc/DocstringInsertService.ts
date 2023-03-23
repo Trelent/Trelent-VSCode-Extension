@@ -7,6 +7,7 @@ import { hashFunction, hashID } from "./changeDetection";
 import DocstringDecorator from "./DocstringDecorator";
 import { insertDocstrings } from "../helpers/util";
 import DocstringCodelens from "./DocstringCodelens";
+import * as md5 from "md5";
 
 export default class DocstringInsertService {
   private codeParserService: CodeParserService;
@@ -31,45 +32,27 @@ export default class DocstringInsertService {
     this.telemetryService = telemetryService;
     this.docstringDecorator = new DocstringDecorator();
     this.docstringCodelens = new DocstringCodelens();
+
+    // Register the update and ignore commands for our codelens
     vscode.commands.registerCommand(
       "trelent.autodoc.update",
-      (document: vscode.TextDocument, functionToUpdate: Function) => {
-        const editor = vscode.window.visibleTextEditors.find(
-          (editor) => editor.document === document
-        );
-        if (!editor) {
-          return;
-        }
-        vscode.commands.executeCommand(
-          "trelent.autodoc.ignore",
-          document,
-          functionToUpdate
-        );
-        this.documentFunctions([functionToUpdate], editor, document);
-      }
+      this.onAutodocUpdate
     );
-
     vscode.commands.registerCommand(
       "trelent.autodoc.ignore",
-      (document: vscode.TextDocument, functionToIgnore: Function) => {
-        let funcId = hashFunction(functionToIgnore);
-        let docId = hashID(document);
-        if (this.changedFunctions[docId]) {
-          this.changedFunctions[docId].delete(funcId);
-        }
-      }
+      this.onAutodocIgnore
     );
-
+    // Now make sure we listen to all the ways a document can change
     vscode.workspace.onDidOpenTextDocument(
-      (event) => {
-        this.updateDocstrings(event);
+      (changedDocument: vscode.TextDocument) => {
+        this.updateDocstrings(changedDocument);
       },
       null,
       this.context.subscriptions
     );
 
     vscode.workspace.onDidChangeTextDocument(
-      (event) => {
+      (event: vscode.TextDocumentChangeEvent) => {
         this.updateDocstrings(event.document);
       },
       null,
@@ -86,6 +69,35 @@ export default class DocstringInsertService {
       null,
       this.context.subscriptions
     );
+  }
+
+  private onAutodocUpdate(
+    document: vscode.TextDocument,
+    functionToUpdate: Function
+  ) {
+    const editor = vscode.window.visibleTextEditors.find(
+      (editor) => editor.document === document
+    );
+    if (!editor) {
+      return;
+    }
+    vscode.commands.executeCommand(
+      "trelent.autodoc.ignore",
+      document,
+      functionToUpdate
+    );
+    this.documentFunctions([functionToUpdate], editor, document);
+  }
+
+  private onAutodocIgnore(
+    document: vscode.TextDocument,
+    functionToIgnore: Function
+  ) {
+    let funcId = hashFunction(functionToIgnore);
+    let docId = hashID(document);
+    if (this.changedFunctions[docId]) {
+      this.changedFunctions[docId].delete(funcId);
+    }
   }
 
   public async updateDocstrings(document: vscode.TextDocument) {
@@ -118,14 +130,13 @@ export default class DocstringInsertService {
     let offsetVal = 0;
 
     try {
-      //Remove deleted functions from docstring recommendations
-
+      // Remove deleted functions from docstring recommendations
       changedFunctions.deleted.forEach((func) => {
         let funcId = hashFunction(func);
         this.changedFunctions[docId].delete(funcId);
       });
 
-      //Update function updates
+      // Update function updates
       Object.keys(changedFunctions)
         .filter((title) => title != "deleted")
         .flatMap((title) => changedFunctions[title])
@@ -134,30 +145,42 @@ export default class DocstringInsertService {
           this.changedFunctions[docId].add(funcId);
         });
 
-      //Update docstring recommendations
+      // Map our function ids to the actual functions
       let functionsToDocument: Function[] = [
         ...this.changedFunctions[docId],
       ].map(
         (funcId) => allFunctions.find((func) => hashFunction(func) == funcId)!
       );
 
-      //Get tags
+      // Get tagged functions, and remove any that should be ignored
       let taggedFunctions = this.getFunctionTags(functionsToDocument);
-      //If there's no functions
       if (taggedFunctions.length == 0) {
         this.updating.delete(document);
         return [];
       }
 
-      //Auto document functions
+      // Get functions to be documented, and proceed
       let autoFunctions = taggedFunctions
         .filter((tagFunc) => tagFunc.tag == DocTag.AUTO)
         .map((tagFunc) => tagFunc.function);
-      offsetVal += await this.documentFunctions(
-        autoFunctions,
-        editor,
-        document
-      );
+
+      // We want to make sure that the user isn't typing rapidly as we
+      // update the docstrings, so let's wait a bit before we do anything.
+      let currentDocumentHash = md5(document.getText());
+      setTimeout(async () => {
+        let newDocumentHash = md5(document.getText());
+        if (currentDocumentHash != newDocumentHash) {
+          // The document has changed, so we should just return early.
+          return;
+        }
+
+        // Check if any
+        offsetVal += await this.documentFunctions(
+          autoFunctions,
+          editor,
+          document
+        );
+      }, 500);
     } catch (e) {
       console.log(e);
     } finally {
@@ -254,6 +277,8 @@ export default class DocstringInsertService {
         document.languageId
       );
     }
+
+    // TODO: We probably want to do this somewhere else?
     this.applyHighlights(document);
     return offsetVal;
   }
@@ -304,7 +329,6 @@ export default class DocstringInsertService {
     //Remove ignored functions
 
     const trelentConfig = vscode.workspace.getConfiguration("trelent");
-
     const autodocMode = trelentConfig.get("autodoc.mode");
 
     const configTag: DocTag = ((): DocTag => {

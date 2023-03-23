@@ -1,98 +1,138 @@
 import * as vscode from "vscode";
 import { Function } from "../parser/types";
-var md5 = require("md5")
-var levenshtein = require("fast-levenshtein")
+import * as md5 from "md5";
+import * as levenshtein from "fast-levenshtein";
 
 export class ChangeDetectionService {
-    fileInfo: {[key: string]: {allFunctions: Function[], updates: {[key: string]: Function[]}}} = {};
+  fileInfo: {
+    [key: string]: {
+      allFunctions: Function[];
+      updates: { [key: string]: Function[] };
+    };
+  } = {};
 
+  levenshtein_update_threshold: number = 50;
 
-    MAX_TRACKING_SIZE = 100;
+  constructor() {
+    // Configure the change threshold, and make sure we listen to
+    // changes to the configuration users may make in the future.
+    this.refreshThreshold();
+    vscode.workspace.onDidChangeConfiguration(this.refreshThreshold);
+  }
 
-    UPDATE_THRESHOLD = 50;
-    /* Adds state to the track history of a file. 
-    *  new tree is saved to index 0 of the history
-    */
-    public trackState(doc: vscode.TextDocument, functions: Function[]){
-        let trackID = hashID(doc);
-        if(!(trackID in this.fileInfo)){
-            this.fileInfo[trackID] = {allFunctions: functions, updates: {"new": [], "deleted": [], "updated": []}};
+  private refreshThreshold = () => {
+    const trelentConfig = vscode.workspace.getConfiguration("trelent");
+    const autodocThreshold = trelentConfig.get("autodoc.changeThreshold");
+    switch (autodocThreshold) {
+      case "Passive":
+        this.levenshtein_update_threshold = 250;
+        break;
+      case "Neutral":
+        this.levenshtein_update_threshold = 150;
+        break;
+      case "Aggressive":
+        this.levenshtein_update_threshold = 50;
+        break;
+      default:
+        // Default to passive
+        this.levenshtein_update_threshold = 250;
+        break;
+    }
+  };
+
+  public trackState(doc: vscode.TextDocument, functions: Function[]) {
+    let trackID = hashID(doc);
+    if (!(trackID in this.fileInfo)) {
+      this.fileInfo[trackID] = {
+        allFunctions: functions,
+        updates: { new: [], deleted: [], updated: [] },
+      };
+    }
+    let updateThese = this.getChangedFunctions(doc, functions);
+    this.fileInfo[trackID] = { allFunctions: functions, updates: updateThese };
+    return updateThese;
+  }
+
+  public getHistory(doc: vscode.TextDocument): {
+    allFunctions: Function[];
+    updates: { [key: string]: Function[] };
+  } {
+    let trackID = hashID(doc);
+    if (!(trackID in this.fileInfo)) {
+      console.error("Could not find history with hash (" + trackID + ")");
+      return {
+        allFunctions: [],
+        updates: { new: [], deleted: [], updated: [] },
+      };
+    }
+    return this.fileInfo[trackID];
+  }
+
+  /**
+   * Determines whether or not we should notify the user that their document has been updated, and should be re-documented
+   * @param doc
+   * @param functions
+   * @returns
+   */
+  private getChangedFunctions(
+    doc: vscode.TextDocument,
+    functions: Function[]
+  ): { [key: string]: Function[] } {
+    let history = this.getHistory(doc).allFunctions;
+
+    let returnObj: { [key: string]: Function[] } = {
+      new: [],
+      deleted: [],
+      updated: [],
+    };
+
+    //The format of the idMatching object is key: Hash of the name + params, value object with keys "old", and "new"
+    let idMatching: { [key: string]: { [key: string]: Function } } = {};
+
+    //Fill idMatching with new functions
+    functions.forEach((func) => {
+      let id = hashFunction(func);
+      if (!(id in idMatching)) {
+        idMatching[id] = {};
+      }
+      idMatching[id]["new"] = func;
+    });
+
+    history.forEach((func: Function) => {
+      let id = hashFunction(func);
+      if (!(id in idMatching)) {
+        idMatching[id] = {};
+      }
+      idMatching[id]["old"] = func;
+    });
+
+    var ids = Object.keys(idMatching);
+
+    ids.forEach((id) => {
+      let functionPair = idMatching[id];
+      if ("old" in functionPair) {
+        //If the function still exists
+        if ("new" in functionPair) {
+          if (
+            compareFunctions(functionPair["old"], functionPair["new"]) >
+            this.levenshtein_update_threshold
+          ) {
+            returnObj.updated.push(functionPair["new"]);
+          }
         }
-        let updateThese = this.getChangedFunctions(doc, functions);
-        this.fileInfo[trackID] = {allFunctions: functions, updates: updateThese};
-        return updateThese
-    }
-
-    
-    public getHistory(doc: vscode.TextDocument): {allFunctions: Function[], updates: {[key: string]: Function[]}} {
-        let trackID = hashID(doc);
-        if(!(trackID in this.fileInfo)){
-            console.error("Could not find history with hash (" + trackID + ")");
-            return {allFunctions: [], updates: {"new": [], "deleted": [], "updated": []}};
+        //If the function was deleted
+        else {
+          returnObj.deleted.push(functionPair["old"]);
         }
-        return this.fileInfo[trackID];
-    }
+      }
+      //If this is a new function
+      else {
+        returnObj.new.push(functionPair["new"]);
+      }
+    });
 
-    /**
-     * Determines whether or not we should notify the user that their document has been updated, and should be re-documented
-     * @param doc 
-     * @param functions 
-     * @returns 
-     */
-    public getChangedFunctions(doc: vscode.TextDocument, functions: Function[]): {[key: string]: Function[]}{
-        let history = this.getHistory(doc).allFunctions
-
-        let returnObj: {[key: string]: Function[]} = {
-            "new": [], 
-            "deleted": [], 
-            "updated": []
-        };
-
-        //The format of the idMatching object is key: Hash of the name + params, value object with keys "old", and "new"
-        let idMatching: {[key: string]: {[key: string]: Function}} = {};
-
-        //Fill idMatching with new functions
-        functions.forEach((func) => {
-            let id = hashFunction(func);
-            if(!(id in idMatching)){
-                idMatching[id] = {};
-            }
-            idMatching[id]["new"] = func
-        });
-
-        history.forEach((func: Function) => {
-            let id = hashFunction(func);
-            if(!(id in idMatching)){
-                idMatching[id] = {};
-            }
-            idMatching[id]["old"] = func
-        });
-
-        var ids = Object.keys(idMatching);
-
-        ids.forEach((id) => {
-            let functionPair = idMatching[id];
-            if("old" in functionPair){
-                //If the function still exists
-                if("new" in functionPair){
-                    if(compareFunctions(functionPair["old"], functionPair["new"]) > this.UPDATE_THRESHOLD){
-                        returnObj.updated.push(functionPair["new"]);
-                    }
-                }
-                //If the function was deleted
-                else{
-                    returnObj.deleted.push(functionPair["old"]);
-                }
-            }
-            //If this is a new function
-            else{
-                returnObj.new.push(functionPair["new"]);
-            }
-        })
-
-        return returnObj;
-    }
-
+    return returnObj;
+  }
 }
 
 let compareFunctions = (function1: Function, function2: Function): number => {

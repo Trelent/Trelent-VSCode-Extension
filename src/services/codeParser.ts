@@ -81,8 +81,6 @@ export class CodeParserService {
             }
           }
         );
-        //  vscode.workspace.onDidSaveTextDocument(this.parse);
-        //  vscode.workspace.onDidOpenTextDocument(this.parse);
         return this;
       });
   }
@@ -90,13 +88,15 @@ export class CodeParserService {
   public parseNoTrack = async (
     doc: vscode.TextDocument
   ): Promise<Function[]> => {
+    // Language check
     const lang = getLanguageName(doc.languageId, doc.fileName);
-
     if (!isLanguageSupported(lang)) return [];
 
-    await this.parseText(doc.getText(), lang);
-    let functions = this.getFunctions();
-    return functions;
+    // Parse the document
+    await this.safeParseText(doc.getText(), lang);
+    
+    // Return the functions that are now stored in the service
+    return this.getFunctions();
   };
 
   public parse = async (doc: vscode.TextDocument) => {
@@ -105,15 +105,17 @@ export class CodeParserService {
     // Filter bad input (mostly for supported languages etc)
     if (!isLanguageSupported(lang)) return;
 
-    await this.parseText(doc.getText(), lang);
+    await this.safeParseText(doc.getText(), lang);
     let functions = this.getFunctions();
     if (functions.length == 0) {
       return {};
     }
+
+    // This returns a list of the functions we want to highlight or update
     return this.changeDetectionService.trackState(doc, functions);
   };
 
-  public parseText = async (text: string, lang: string) => {
+  public safeParseText = async (text: string, lang: string) => {
     if (!this.loadedLanguages[lang]) return;
     if (!this.parser) return;
     await parseText(text, this.loadedLanguages[lang], this.parser)
