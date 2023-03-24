@@ -137,6 +137,57 @@
             "Numpy style Python documentation format."
           ],
           "description": "Python docstring format"
+        },
+        "trelent.autodoc.mode": {
+          "type": "string",
+          "default": "Enable Globally",
+          "enum": [
+            "Enable Per-Function",
+            "Enable Globally",
+            "Maintain Docstrings"
+          ],
+          "enumDescriptions": [
+            "-----\nWe will look for functions that are specifically marked with the \"@trelent-highlight\" tag, and highlight those with outdated docstrings.\n\nFunctions marked with the \"@trelent-auto\" tag will have their docstrings automatically kept up to date, replacing them in-place, with no manual action required.",
+            "-----\nWe will highlight all functions with outdated docstrings, except for those with the \"@trelent-ignore\" tag.\n\nFunctions marked with the \"@trelent-auto\" tag will have their docstrings automatically kept up to date, replacing them in-place, with no manual action required.",
+            "-----\nWe will automatically keep all outdated docstrings up to date, replacing them in-place, with no manual action required.\n\nWe will skip those with the \"@trelent-ignore\" or \"@trelent-highlight\" tag."
+          ],
+          "description": "Defines whether we should automatically keep docstrings up to date, highlight old ones, or do either of these using comments. Please read each description carefully."
+        },
+        "trelent.autodoc.changeThreshold": {
+          "type": "string",
+          "default": "Passive",
+          "enum": [
+            "Passive",
+            "Neutral",
+            "Aggressive"
+          ]
+        }
+      }
+    },
+    "colors": [
+      {
+        "id": "trelent.autodoc.functionColor",
+        "description": "Color used to highlight recommended docstrings",
+        "defaults": {
+          "dark": "#63B9D611",
+          "light": "#63B9D611"
+        }
+      },
+      {
+        "id": "trelent.autodoc.functionHeadColor",
+        "description": "Color used as the header for highlighting functions",
+        "defaults": {
+          "dark": "#63B9D622",
+          "light": "#63B9D622"
+        }
+      }
+    ],
+    "icons": {
+      "trelent-dark":{
+        "description": "Trelent icon",
+        "default": {
+          "fontPath": "./assets/icons/trelent.woff",
+          "fontCharacter": "\\1f5ff"
         }
       }
     }
@@ -149,9 +200,10 @@
     "test": "tsc -p tsconfig.extension.json && node ./build/src/test/runTest.js"
   },
   "devDependencies": {
-    "@vscode/test-electron": "^2.2.3",
     "@types/chai": "^4.3.4",
+    "@types/fast-levenshtein": "^0.0.2",
     "@types/glob": "^7.1.3",
+    "@types/md5": "^2.3.2",
     "@types/mixpanel-browser": "^2.38.0",
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.18.5",
@@ -161,6 +213,7 @@
     "@types/vscode": "^1.60.0",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
+    "@vscode/test-electron": "^2.2.3",
     "@vscode/vsce": "^2.18.0",
     "autoprefixer": "^10.4.13",
     "chai": "^4.3.7",
@@ -182,6 +235,8 @@
   },
   "dependencies": {
     "axios": "^0.22.0",
+    "fast-levenshtein": "^3.0.0",
+    "md5": "^2.3.0",
     "mixpanel-browser": "^2.45.0",
     "polka": "^0.5.2",
     "ts-node": "^10.9.1",

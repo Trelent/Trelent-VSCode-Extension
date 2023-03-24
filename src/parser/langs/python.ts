@@ -38,8 +38,10 @@ export const parsePythonFunctions = (
     let func: Function = {
         body: "",
         definition: "",
+        definition_line: nameNode.startPosition.row,
         docstring: undefined,
         docstring_point: undefined,
+        docstring_range: undefined,
         name: "",
         params: [],
         range: [
@@ -70,7 +72,11 @@ export const parsePythonFunctions = (
     
     //if there is a docNode present, populate the docstring field
     if(docNode){
-        func.docstring = docNode.text;
+        func.docstring = docNode.text.trim();
+        func.docstring_range = [
+            [docNode.startPosition.row, docNode.startPosition.column], 
+            [docNode.endPosition.row, docNode.endPosition.column]
+        ];
     }
 
     func.docstring_point = docstringPoint;

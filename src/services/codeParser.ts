@@ -4,6 +4,9 @@ const Parser = require("web-tree-sitter");
 import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
 import { Function } from "../parser/types";
+import { ChangeDetectionService } from "../autodoc/changeDetection";
+import DocstringInsertService from "../autodoc/DocstringInsertService";
+import { TelemetryService } from "./telemetry";
 
 const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
   let grammarPath = context.asAbsolutePath(
@@ -14,17 +17,31 @@ const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
 };
 
 export class CodeParserService {
+  //Format: First key is file uri hash, second key is function name + params hash, value is recommended docstring
   parser: any;
   loadedLanguages: any = {
     csharp: null,
     java: null,
     javascript: null,
     python: null,
-    typescript: null
+    typescript: null,
   };
   parsedFunctions: Function[] = [];
+  changeDetectionService: ChangeDetectionService;
+  autodocService: DocstringInsertService;
+  telemetryService: TelemetryService;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(
+    context: vscode.ExtensionContext,
+    telemetryService: TelemetryService
+  ) {
+    this.telemetryService = telemetryService;
+    this.changeDetectionService = new ChangeDetectionService();
+    this.autodocService = new DocstringInsertService(
+      context,
+      this,
+      telemetryService
+    );
     // Initialize our TS Parser
     return Parser.init({
       locateFile(scriptName: string, scriptDirectory: string) {
@@ -52,9 +69,9 @@ export class CodeParserService {
           getGrammarPath(context, "typescript")
         );
       })
-      .then(() => {
-        this.parser = new Parser();
-        
+      .then(async () => {
+        this.parser = await new Parser();
+
         // Now parse when the active editor changes, a document is saved, or a document is opened
         vscode.window.onDidChangeActiveTextEditor(
           (editor: vscode.TextEditor | undefined) => {
@@ -64,11 +81,23 @@ export class CodeParserService {
             }
           }
         );
-        vscode.workspace.onDidSaveTextDocument(this.parse);
-        vscode.workspace.onDidOpenTextDocument(this.parse);
         return this;
       });
   }
+
+  public parseNoTrack = async (
+    doc: vscode.TextDocument
+  ): Promise<Function[]> => {
+    // Language check
+    const lang = getLanguageName(doc.languageId, doc.fileName);
+    if (!isLanguageSupported(lang)) return [];
+
+    // Parse the document
+    await this.safeParseText(doc.getText(), lang);
+    
+    // Return the functions that are now stored in the service
+    return this.getFunctions();
+  };
 
   public parse = async (doc: vscode.TextDocument) => {
     const lang = getLanguageName(doc.languageId, doc.fileName);
@@ -76,13 +105,19 @@ export class CodeParserService {
     // Filter bad input (mostly for supported languages etc)
     if (!isLanguageSupported(lang)) return;
 
-    await this.parseText(doc.getText(), lang);
+    await this.safeParseText(doc.getText(), lang);
+    let functions = this.getFunctions();
+    if (functions.length == 0) {
+      return {};
+    }
+
+    // This returns a list of the functions we want to highlight or update
+    return this.changeDetectionService.trackState(doc, functions);
   };
 
-  public parseText = async (text: string, lang: string) => {
+  public safeParseText = async (text: string, lang: string) => {
     if (!this.loadedLanguages[lang]) return;
-    if (!this.parser) return; 
-
+    if (!this.parser) return;
     await parseText(text, this.loadedLanguages[lang], this.parser)
       .then((tree) => {
         return parseFunctions(tree, lang, this.loadedLanguages[lang]);
@@ -93,9 +128,25 @@ export class CodeParserService {
       .catch((err) => {
         console.error(err);
       });
-  }
+  };
 
   public getFunctions() {
     return this.parsedFunctions;
   }
 }
+
+let service: CodeParserService | undefined;
+
+export let createCodeParserService = async (
+  context: vscode.ExtensionContext,
+  telemetryService: TelemetryService
+) => {
+  if (!service) {
+    service = await new CodeParserService(context, telemetryService);
+  }
+  return service!;
+};
+
+export let getCodeParserService = () => {
+  return service!;
+};

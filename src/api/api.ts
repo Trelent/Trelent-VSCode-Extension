@@ -69,7 +69,7 @@ export const requestDocstrings = async (
   language: string,
   modulesContext: string | null
 ): Promise<any> => {
-  let dataArr: { success: boolean; error: string; data: any }[] = [];
+  let dataArr: { success: boolean; error: string; data: any; function: Function}[] = [];
 
   let token = await TokenManager.getToken(context);
 
@@ -104,7 +104,10 @@ export const requestDocstrings = async (
       })
         .then((response: any) => {
           let result = response.data;
-          dataArr.push(result);
+          dataArr.push({
+            ...result,
+            function: func
+          });
         })
         .catch((error: any) => {
           console.log(error);

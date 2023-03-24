@@ -1,3 +1,4 @@
+yarn.lock
 node_modules
 build
 .vscode
@@ -6,3 +7,4 @@ src/welcome-page-out
 .DS_Store
 yarn-error.log
 .vscode-test
+yarn.lock

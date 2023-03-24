@@ -127,10 +127,12 @@ const pythonFuncQuery = `
 ) @function.def
 `;
 
+const tsFuncQuery = jsFuncQuery;
+
 const funcQeries: any = {
   csharp: csharpFuncQuery,
   java: javaFuncQuery,
   javascript: jsFuncQuery,
   python: pythonFuncQuery,
-  typescript: jsFuncQuery,
+  typescript: tsFuncQuery,
 };
