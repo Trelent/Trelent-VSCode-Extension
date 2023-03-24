@@ -58,15 +58,6 @@ export default class DocstringInsertService {
       this
     );
 
-    // Now make sure we listen to all the ways a document can change
-    vscode.workspace.onDidOpenTextDocument(
-      (changedDocument: vscode.TextDocument) => {
-        this.updateDocstrings(changedDocument);
-      },
-      null,
-      this.context.subscriptions
-    );
-
     let timeoutId: NodeJS.Timeout | undefined = undefined;
     vscode.workspace.onDidChangeTextDocument(
       (event: vscode.TextDocumentChangeEvent) => {
@@ -134,13 +125,13 @@ export default class DocstringInsertService {
   }
 
   private async updateDocstrings(document: vscode.TextDocument) {
+    let docId = this.verifyDocument(document);
     const editor = vscode.window.visibleTextEditors.find(
       (editor) => editor.document === document
     );
     if (!editor) {
       return;
     }
-    let docId = this.verifyDocument(document);
 
     await this.codeParserService.parse(document);
 

@@ -18,10 +18,10 @@ export const parseText = async (
   parser.setLanguage(language);
 
   //Parse the document
-  if (tree) {
-    return parser.parse(text, tree) as Tree;
+  if (!tree) {
+    tree = parser.parse(text) as Tree;
   }
-  return parser.parse(text) as Tree;
+  return parser.parse(text, tree) as Tree;
 };
 
 export const parseFunctions = async (
