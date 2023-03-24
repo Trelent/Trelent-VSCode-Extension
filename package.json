@@ -140,10 +140,10 @@
         },
         "trelent.autodoc.mode": {
           "type": "string",
-          "default": "Enable Globally",
+          "default": "Highlight Globally",
           "enum": [
-            "Enable Per-Function",
-            "Enable Globally",
+            "Highlight Per-Function",
+            "Highlight Globally",
             "Maintain Docstrings"
           ],
           "enumDescriptions": [

@@ -365,10 +365,10 @@ export default class DocstringInsertService {
 
     const configTag: DocTag = ((): DocTag => {
       switch (autodocMode) {
-        case "Enable Per-Function": {
+        case "Highlight Per-Function": {
           return DocTag.IGNORE;
         }
-        case "Enable Globally": {
+        case "Highlight Globally": {
           return DocTag.HIGHLIGHT;
         }
         case "Maintain Docstrings": {
