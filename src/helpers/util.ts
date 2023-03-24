@@ -34,8 +34,11 @@ async function showVersionPopup(
   currentVersion: string
 ) {
   const result = await vscode.window.showInformationMessage(
-    `Trelent v${currentVersion} — Fixed parsing issue for nested functions.`,
+    `Trelent v${currentVersion} — Automatic docstrings! 🎉`,
     ...[
+      {
+        title: "Enable Auto-Mode",
+      },
       {
         title: "Join Community",
       },
@@ -47,8 +50,10 @@ async function showVersionPopup(
       "vscode.open",
       vscode.Uri.parse("https://discord.com/invite/trelent")
     );
-  } else if (result?.title === "Learn More") {
+  } else if (result?.title === "Enable Auto-Mode") {
     vscode.commands.executeCommand("trelent.help");
+  } else if (result?.title === "Get Started") {
+    vscode.commands.executeCommand("_workbench.openWorkspaceSettingsEditor");
   }
 }
 

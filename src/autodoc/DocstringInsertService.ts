@@ -202,6 +202,18 @@ export default class DocstringInsertService {
     }
   }
 
+  /**
+   * The documentFunctions function is responsible for inserting docstrings into a document.
+   *
+   *
+   * @param functions: Function[] Pass in the functions that were parsed from the document
+   * @param editor: vscode.TextEditor Get the current editor
+   * @param document: vscode.TextDocument Get the document that is currently open in the editor
+   *
+   * @return A promise that resolves to a number
+   *
+   * @docauthor Trelent
+   */
   public async documentFunctions(
     functions: Function[],
     editor: vscode.TextEditor,
