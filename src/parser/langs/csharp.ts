@@ -41,22 +41,17 @@ export const parseCSharpFunctions = (
       definition: "",
       definition_line: nameNode.startPosition.row,
       docstring: undefined,
-      docstring_point: undefined,
+      docstring_offset: defNode.startIndex,
       docstring_range: undefined,
       name: "",
       params: [],
-      range: [
-        [0, 0],
-        [0, 0],
-      ],
+      range: [0, 0],
       text: "",
     };
 
     //Define bounds of the function
-    let start = defNode.startPosition;
-    let end = bodyNode.endPosition;
-
-    let docstringPoint = [start.row, start.column];
+    let start = defNode.startIndex;
+    let end = bodyNode.endIndex;
 
     //Define the fields of the function
     func.body = bodyNode.text;
@@ -78,38 +73,24 @@ export const parseCSharpFunctions = (
 
       //get docstring position
       func.docstring = docText;
-      const firstRow = Math.min(
+      const docStart = Math.min(
         ...docNodes.map((node) => {
-          return node.startPosition.row;
+          return node.startIndex;
         })
       );
-      const lastRow = Math.max(
+      const docEnd = Math.max(
         ...docNodes.map((node) => {
-          return node.endPosition.row;
+          return node.endIndex;
         })
       );
-      let docstringStart = docNodes.find((node) => {
-        return node.startPosition.row == firstRow;
-      })!.startPosition;
-      let docstringEnd = docNodes.find((node) => {
-        return node.endPosition.row == lastRow;
-      })!.endPosition;
-      func.docstring_range = [
-        [docstringStart.row, docstringStart.column],
-        [docstringEnd.row, docstringEnd.column],
-      ];
+      func.docstring_range = [docStart, docEnd];
     }
-
-    func.docstring_point = docstringPoint;
 
     func.name = nameNode.text;
 
     func.params = getParams(paramsNode.text);
 
-    func.range = [
-      [start.row, start.column],
-      [end.row, end.column],
-    ];
+    func.range = [start, end];
 
     func.text = defNode.text;
 

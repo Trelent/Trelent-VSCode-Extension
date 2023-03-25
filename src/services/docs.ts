@@ -69,7 +69,10 @@ let writeDocstring = async (
   let functions = parser.getFunctions();
 
   // Check if our cursor is within any of those functions
-  let currentFunction = isCursorWithinFunction(cursorPosition, functions);
+  let currentFunction = isCursorWithinFunction(
+    editor.document.offsetAt(cursorPosition),
+    functions
+  );
   if (currentFunction == undefined) {
     vscode.window.showErrorMessage(
       "We couldn't find a function at your cursor. Try highlighting your function instead, or move your cursor a bit."
@@ -85,30 +88,27 @@ let writeDocstring = async (
 };
 
 const isCursorWithinFunction = (
-  cursorPosition: vscode.Position,
+  cursorPosition: number,
   functions: Function[]
 ): Function | undefined => {
   let validFuncs: Function[] = [];
   for (let func of functions) {
-    if (
-      cursorPosition.line >= func.range[0][0] &&
-      cursorPosition.line <= func.range[1][0]
-    ) {
+    if (cursorPosition >= func.range[0] && cursorPosition <= func.range[1]) {
       validFuncs.push(func);
     }
   }
 
-  // Search for the one with the greatest indentation, ie func.range[0][1] is the greatest
-  let greatestIndentation = -1;
-  let greatestIndentationFunc: Function | undefined = undefined;
+  // Search for the one with the greatest indentation, ie func.range[0] is the greatest
+  let greatestOffset = -1;
+  let greatestOffsetFunc: Function | undefined = undefined;
   for (let func of validFuncs) {
-    if (func.range[0][1] > greatestIndentation) {
-      greatestIndentation = func.range[0][1];
-      greatestIndentationFunc = func;
+    if (func.range[0] > greatestOffset) {
+      greatestOffset = func.range[0];
+      greatestOffsetFunc = func;
     }
   }
 
-  return greatestIndentationFunc;
+  return greatestOffsetFunc;
 };
 
 export let writeDocstringsFromParsedDocument = async (

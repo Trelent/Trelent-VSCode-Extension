@@ -99,15 +99,11 @@ export async function insertDocstrings(
   editor: vscode.TextEditor,
   languageId: string
 ) {
-  // Track inserted lines in case we want to do multiple
-  // docstrings at once for paid users.
-  let insertedLines = 0;
-
   // First, sort our docstrings by first insertion so that when we account
   // for newly-inserted lines, we aren't mismatching docstring locations
   docstrings.sort(compareDocstringPoints);
 
-  for(let docstring of docstrings) {
+  for (let docstring of docstrings) {
     let docPoint = docstring["point"];
     let docStr = docstring["docstring"];
 
@@ -123,15 +119,17 @@ export async function insertDocstrings(
     // If this is a c-style language, add a newline above the docstring. Otherwise, add one below.
     // This prevents overwriting the line before or after the docstring. Also check if we need an extra
     // line if there is non-whitespace above the insert location.
-    const insertPosition = new vscode.Position(
-      docPoint[0] + insertedLines,
-      docPoint[1]
-    );
-    
+    const insertPosition = new vscode.Position(docPoint[0], docPoint[1]);
+
     //editor?.insertSnippet(snippet, insertPosition);
-    let indent = new vscode.Range(new vscode.Position(insertPosition.line, 0), insertPosition);
+    let indent = new vscode.Range(
+      new vscode.Position(insertPosition.line, 0),
+      insertPosition
+    );
     let indentStr = " ".repeat(editor?.document.getText(indent).length);
-    let snippetStr = (docStr.trimEnd() + "\n").split("\n").join("\n" + indentStr);
+    let snippetStr = (docStr.trimEnd() + "\n")
+      .split("\n")
+      .join("\n" + indentStr);
 
     await editor?.edit((editBuilder) => {
       editBuilder.replace(insertPosition, snippetStr.trimStart());
@@ -139,10 +137,5 @@ export async function insertDocstrings(
 
     // DEBUG
     // console.log(docPoint[0]+insertedLines + " " + docPoint[1]);
-
-    const docStrLength = (snippetStr.match(/\n/g) || []).length;
-    insertedLines += docStrLength;
-    
-  };
-  return insertedLines;
+  }
 }
