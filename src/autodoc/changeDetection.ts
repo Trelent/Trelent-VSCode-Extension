@@ -115,10 +115,24 @@ export class ChangeDetectionService {
     });
     if (this.fileInfo[docId]) {
       this.fileInfo[docId].allFunctions.forEach((func) => {
-        updateFunctionRange(doc, func, edits);
+        updateFunctionRange(func, edits);
       });
     }
     this.refreshDocChanges(doc);
+  }
+
+  private refreshDocChanges(doc: vscode.TextDocument) {
+    let trackID = hashID(doc);
+    if (!(trackID in this.changedFunctions)) {
+      console.error("Could not find history with hash (" + trackID + ")");
+      this.changedFunctions[trackID] = {};
+    }
+    let changedFunctions = Object.values(this.changedFunctions[trackID]);
+    for (let index in this.changedFunctions[trackID])
+      delete this.changedFunctions[trackID][index];
+    changedFunctions.forEach((func) => {
+      this.changedFunctions[hashFunction(func)] = func;
+    });
   }
 
   public getHistory(doc: vscode.TextDocument): {
@@ -164,20 +178,6 @@ export class ChangeDetectionService {
     return docChanges[funcId] != undefined;
   }
 
-  private refreshDocChanges(doc: vscode.TextDocument) {
-    let trackID = hashID(doc);
-    if (!(trackID in this.changedFunctions)) {
-      console.error("Could not find history with hash (" + trackID + ")");
-      this.changedFunctions[trackID] = {};
-    }
-    let changedFunctions = Object.values(this.changedFunctions[trackID]);
-    for (let index in this.changedFunctions[trackID])
-      delete this.changedFunctions[trackID][index];
-    changedFunctions.forEach((func) => {
-      this.changedFunctions[hashFunction(func)] = func;
-    });
-  }
-
   /**
    * Determines whether or not we should notify the user that their document has been updated, and should be re-documented
    * @param doc
@@ -208,6 +208,7 @@ export class ChangeDetectionService {
       idMatching[id]["new"] = func;
     });
 
+    //Fil idMatching with old functions
     history.forEach((func: Function) => {
       let id = hashFunction(func);
       if (!(id in idMatching)) {
@@ -245,19 +246,8 @@ export class ChangeDetectionService {
   }
 }
 
-let compareFunctions = (function1: Function, function2: Function): number => {
-  let sum = 0;
-  sum += levenshtein.get(function1.body, function2.body);
-  sum += levenshtein.get(function1.definition, function2.definition);
-  sum += levenshtein.get(function1.text, function2.text);
-  return sum;
-};
-
-let updateFunctionRange = (
-  doc: vscode.TextDocument,
-  func: Function,
-  changes: Edit[]
-) => {
+let updateFunctionRange = (func: Function, changes: Edit[]) => {
+  //Define vars
   let totDocTopOffset = 0,
     totDocBottomOffset = 0,
     totDocstringPointOffset = 0,
@@ -265,44 +255,45 @@ let updateFunctionRange = (
     totFuncBottomOffset = 0,
     totDefLineOffset = 0;
 
-  //Define vars
-
   changes.forEach((edit) => {
     //Init needed values lmao
     let offsetDiff = edit.newEndIndex - edit.oldEndIndex;
+    let lineOffset = edit.newEndPosition.row - edit.oldEndPosition.row;
     let bottomOffset = func.range[1];
 
     // If the changes happened above the function, we need to update the range
-    if (edit.startIndex <= bottomOffset) {
+    if (edit.oldEndIndex <= bottomOffset) {
       //Check if the docstring was affected
       if (func.docstring_range) {
         //Determine if either of the docstring range points were affected
-        if (edit.startIndex <= func.docstring_range[0]) {
+        if (edit.oldEndIndex <= func.docstring_range[0]) {
           totDocTopOffset += offsetDiff;
         }
-        if (edit.startIndex <= func.docstring_range[1]) {
+        if (edit.oldEndIndex <= func.docstring_range[1]) {
           totDocBottomOffset += offsetDiff;
         }
       }
 
       //Check if the docstring point was affected
-      if (func.docstring_offset && edit.startIndex <= func.docstring_offset) {
+      if (edit.oldEndIndex <= func.docstring_offset) {
         totDocstringPointOffset += offsetDiff;
       }
 
       //Determine if either of the function range points were affected
-      if (edit.startIndex <= func.range[0]) {
+      if (edit.oldEndIndex <= func.range[0]) {
         totFuncTopOffset += offsetDiff;
       }
-      if (edit.startIndex <= func.range[1]) {
+      if (edit.oldEndIndex <= func.range[1]) {
         totFuncBottomOffset += offsetDiff;
       }
 
       //Check if defline was affected
-      totDefLineOffset += edit.newEndPosition.row - edit.oldEndPosition.row;
+      if (edit.oldEndPosition.row <= func.definition_line) {
+        totDefLineOffset += lineOffset;
+      }
     }
   });
-  if (totDocTopOffset + totDocBottomOffset != 0 && func.docstring_range) {
+  if (func.docstring_range) {
     //Define the docstring range in terms of offsets
 
     func.docstring_range[0] += totDocTopOffset;
@@ -316,6 +307,13 @@ let updateFunctionRange = (
   func.range[1] += totFuncBottomOffset;
 
   func.definition_line += totDefLineOffset;
+};
+
+let compareFunctions = (function1: Function, function2: Function): number => {
+  let sum = 0;
+
+  sum += levenshtein.get(function1.text, function2.text);
+  return sum;
 };
 
 export let hashFunction = (func: Function): number => {

@@ -57,9 +57,6 @@ export const parsePythonFunctions = (
     let start = defNode.startIndex;
     let end = defNode.endIndex;
 
-    //Define the fields of the function
-    func.body = bodyNode.text;
-
     func.definition = func.definition = getTextBetweenPoints(
       tree.rootNode.text,
       defNode.startPosition,
@@ -71,6 +68,16 @@ export const parsePythonFunctions = (
       func.docstring = docNode.text.trim();
       func.docstring_range = [docNode.startIndex, docNode.endIndex];
     }
+
+    //Extract docstring from the body (since we are storing it in docstring anyways)
+    let docText = bodyNode.text;
+    if (func.docstring_range) {
+      docText = docText.substring(
+        func.docstring_range[1] - func.docstring_range[0],
+        docText.length
+      );
+    }
+    func.body = docText;
 
     func.name = nameNode.text;
 

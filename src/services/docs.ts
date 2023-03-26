@@ -59,14 +59,14 @@ let writeDocstring = async (
     return;
   }
 
-  //Parse document
-  await parser.parse(editor.document);
-
   // Get the cursor position
   let cursorPosition = editor.selection.active;
 
+  await parser.parse(editor.document);
   // Get currently selected function
-  let functions = parser.getFunctions();
+  let functions = parser.changeDetectionService.getHistory(
+    editor.document
+  ).allFunctions;
 
   // Check if our cursor is within any of those functions
   let currentFunction = isCursorWithinFunction(

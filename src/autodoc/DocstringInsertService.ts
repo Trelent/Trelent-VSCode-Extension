@@ -59,9 +59,9 @@ export default class DocstringInsertService {
     //When the file changes
     let timeoutId: NodeJS.Timeout | undefined = undefined;
     vscode.workspace.onDidChangeTextDocument(
-      async (event: vscode.TextDocumentChangeEvent) => {
+      (event: vscode.TextDocumentChangeEvent) => {
         try {
-          await this.codeParserService.changeDetectionService.updateRange(
+          this.codeParserService.changeDetectionService.updateRange(
             event.document,
             event.contentChanges
           );
@@ -145,8 +145,6 @@ export default class DocstringInsertService {
       this.codeParserService.changeDetectionService.getHistory(document);
 
     let allFunctions = fileHistory.allFunctions;
-
-    this.applyHighlights(document, fileHistory.allFunctions);
     if (this.updating.has(document)) {
       return;
     }

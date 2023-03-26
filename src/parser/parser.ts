@@ -19,7 +19,7 @@ export const parseText = async (
 
   //Parse the document
   if (!tree) {
-    tree = parser.parse(text) as Tree;
+    return parser.parse(text) as Tree;
   }
   return parser.parse(text, tree) as Tree;
 };
