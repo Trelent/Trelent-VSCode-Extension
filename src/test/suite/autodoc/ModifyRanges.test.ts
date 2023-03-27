@@ -2,10 +2,6 @@ import * as vscode from "vscode";
 import "mocha";
 import { ExtensionContext } from "vscode";
 import * as path from "path";
-import {
-  ChangeDetectionService,
-  getChangeDetectionService,
-} from "../../../autodoc/changeDetection";
 import * as assert from "assert";
 import {
   CodeParserService,
