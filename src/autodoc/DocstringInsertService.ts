@@ -114,6 +114,10 @@ export default class DocstringInsertService {
       null,
       this.context.subscriptions
     );
+
+    vscode.workspace.onDidCloseTextDocument((event) => {
+      this.codeParserService.changeDetectionService.closeFile(event.uri);
+    });
   }
 
   private onAutodocUpdate(

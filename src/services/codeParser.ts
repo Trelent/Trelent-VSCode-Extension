@@ -4,7 +4,10 @@ const Parser = require("web-tree-sitter");
 import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
 import { Function } from "../parser/types";
-import { ChangeDetectionService } from "../autodoc/changeDetection";
+import {
+  ChangeDetectionService,
+  getChangeDetectionService,
+} from "../autodoc/changeDetection";
 import DocstringInsertService from "../autodoc/DocstringInsertService";
 import { TelemetryService } from "./telemetry";
 import { Tree } from "web-tree-sitter";
@@ -37,7 +40,7 @@ export class CodeParserService {
     telemetryService: TelemetryService
   ) {
     this.telemetryService = telemetryService;
-    this.changeDetectionService = new ChangeDetectionService();
+    this.changeDetectionService = getChangeDetectionService();
     this.autodocService = new DocstringInsertService(
       context,
       this,

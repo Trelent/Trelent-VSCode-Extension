@@ -78,6 +78,12 @@ export class ChangeDetectionService {
     return updateThese;
   }
 
+  public closeFile(doc: vscode.Uri) {
+    let trackID = hashUri(doc);
+    delete this.fileInfo[trackID];
+    delete this.treeHistory[trackID];
+  }
+
   public updateRange(
     doc: vscode.TextDocument,
     changes: readonly vscode.TextDocumentContentChangeEvent[]
@@ -324,4 +330,15 @@ export let hashFunction = (func: Function): number => {
 
 export let hashID = (doc: vscode.TextDocument): string => {
   return md5(doc.uri.path.toString());
+};
+
+export let hashUri = (uri: vscode.Uri): string => {
+  return md5(uri.path.toString());
+};
+
+let changeDetectionService: ChangeDetectionService =
+  new ChangeDetectionService();
+
+export let getChangeDetectionService = () => {
+  return changeDetectionService;
 };

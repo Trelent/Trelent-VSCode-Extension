@@ -1,6 +1,6 @@
+
 public class test {
 
-    
     /**
      * The testjava function tests the java implementation of the function.
      
@@ -15,9 +15,9 @@ public class test {
     }
 
     /*
-    * this is a docstring
-    */
-    public void test(){
+     * this is a docstring
+     */
+    public void test() {
 
     }
 
@@ -25,8 +25,8 @@ public class test {
 
     }
 
-    public void test(){
-        
+    public void test() {
+
     }
 
 }
