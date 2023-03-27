@@ -183,7 +183,7 @@
       }
     ],
     "icons": {
-      "trelent-dark":{
+      "trelent-dark": {
         "description": "Trelent icon",
         "default": {
           "fontPath": "./assets/icons/trelent.woff",

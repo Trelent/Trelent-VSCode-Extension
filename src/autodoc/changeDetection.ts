@@ -85,6 +85,9 @@ export class ChangeDetectionService {
     let docId = hashID(doc);
     let edits: Edit[] = [];
     let tree = this.treeHistory[docId];
+    if (!tree) {
+      return;
+    }
     changes.forEach((change) => {
       let startIndex = change.rangeOffset;
       let oldEndIndex = startIndex + change.rangeLength;
@@ -311,8 +314,7 @@ let updateFunctionRange = (func: Function, changes: Edit[]) => {
 
 let compareFunctions = (function1: Function, function2: Function): number => {
   let sum = 0;
-
-  sum += levenshtein.get(function1.text, function2.text);
+  sum += levenshtein.get(function1.body, function2.body);
   return sum;
 };
 

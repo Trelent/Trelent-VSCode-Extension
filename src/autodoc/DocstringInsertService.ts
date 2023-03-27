@@ -3,7 +3,7 @@ import { CodeParserService } from "../services/codeParser";
 import { DocTag, Function } from "../parser/types";
 import { writeDocstringsFromParsedDocument } from "../services/docs";
 import { TelemetryService } from "../services/telemetry";
-import { hashFunction, hashID } from "./changeDetection";
+import { hashFunction } from "./changeDetection";
 import DocstringDecorator from "./DocstringDecorator";
 import { insertDocstrings } from "../helpers/util";
 import DocstringCodelens from "./DocstringCodelens";
@@ -59,15 +59,29 @@ export default class DocstringInsertService {
     //When the file changes
     let timeoutId: NodeJS.Timeout | undefined = undefined;
     vscode.workspace.onDidChangeTextDocument(
-      (event: vscode.TextDocumentChangeEvent) => {
+      async (event: vscode.TextDocumentChangeEvent) => {
+        if (
+          event.reason == vscode.TextDocumentChangeReason.Undo ||
+          event.reason == vscode.TextDocumentChangeReason.Redo
+        ) {
+          return;
+        }
         try {
+          //Update range references
           this.codeParserService.changeDetectionService.updateRange(
             event.document,
             event.contentChanges
           );
+
+          //Apply highlights to the document after the ranges have been updated
+          this.applyHighlights(event.document);
+
+          //Clear the timeout if it exists
           if (timeoutId) {
             clearTimeout(timeoutId);
           }
+
+          //Set a new timeout
           timeoutId = setTimeout(
             (e) => {
               this.updateDocstrings(e.document);
@@ -75,10 +89,7 @@ export default class DocstringInsertService {
             this.CHANGE_TIME_THRESHOLD,
             event
           );
-        } catch (e) {
-          console.log(e);
         } finally {
-          this.applyHighlights(event.document);
         }
       },
       null,
@@ -96,9 +107,13 @@ export default class DocstringInsertService {
       this.context.subscriptions
     );
 
-    vscode.workspace.onDidOpenTextDocument((doc) => {
-      this.codeParserService.parse(doc);
-    });
+    vscode.workspace.onDidOpenTextDocument(
+      (doc) => {
+        this.codeParserService.parse(doc);
+      },
+      null,
+      this.context.subscriptions
+    );
   }
 
   private onAutodocUpdate(
@@ -140,6 +155,8 @@ export default class DocstringInsertService {
     }
 
     await this.codeParserService.parse(document);
+
+    this.applyHighlights(document);
 
     let fileHistory =
       this.codeParserService.changeDetectionService.getHistory(document);
