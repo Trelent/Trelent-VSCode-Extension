@@ -133,7 +133,6 @@ export class ChangeDetectionService {
   private refreshDocChanges(doc: vscode.TextDocument) {
     let trackID = hashID(doc);
     if (!(trackID in this.changedFunctions)) {
-      console.error("Could not find history with hash (" + trackID + ")");
       this.changedFunctions[trackID] = {};
     }
     let changedFunctions = Object.values(this.changedFunctions[trackID]);
@@ -151,7 +150,6 @@ export class ChangeDetectionService {
   } {
     let trackID = hashID(doc);
     if (!(trackID in this.fileInfo)) {
-      console.error("Could not find history with hash (" + trackID + ")");
       return {
         allFunctions: [],
         updates: { new: [], deleted: [], updated: [] },
@@ -164,7 +162,6 @@ export class ChangeDetectionService {
   public getDocChanges(doc: vscode.TextDocument): { [key: number]: Function } {
     let trackID = hashID(doc);
     if (!(trackID in this.changedFunctions)) {
-      console.error("Could not find history with hash (" + trackID + ")");
       this.changedFunctions[trackID] = {};
     }
     return this.changedFunctions[trackID];
