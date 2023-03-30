@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import { Function } from "../parser/types";
 import * as md5 from "md5";
 import * as levenshtein from "fast-levenshtein";
+import { Edit, Point, Tree } from "web-tree-sitter";
+import { getCodeParserService } from "../services/codeParser";
 
 export class ChangeDetectionService {
   fileInfo: {
@@ -9,6 +11,11 @@ export class ChangeDetectionService {
       allFunctions: Function[];
       updates: { [key: string]: Function[] };
     };
+  } = {};
+  private changedFunctions: { [key: string]: { [key: number]: Function } } = {};
+
+  treeHistory: {
+    [key: string]: Tree;
   } = {};
 
   levenshtein_update_threshold: number = 50;
@@ -40,7 +47,11 @@ export class ChangeDetectionService {
     }
   };
 
-  public trackState(doc: vscode.TextDocument, functions: Function[]) {
+  public trackState(
+    doc: vscode.TextDocument,
+    functions: Function[],
+    tree: Tree
+  ) {
     let trackID = hashID(doc);
     if (!(trackID in this.fileInfo)) {
       this.fileInfo[trackID] = {
@@ -49,23 +60,128 @@ export class ChangeDetectionService {
       };
     }
     let updateThese = this.getChangedFunctions(doc, functions);
+    // Remove deleted functions from docstring recommendations
+    updateThese.deleted.forEach((func) => {
+      this.deleteDocChange(doc, func);
+    });
+
+    // Update function updates
+    Object.keys(updateThese)
+      .filter((title) => title != "deleted")
+      .flatMap((title) => updateThese[title])
+      .forEach((func) => {
+        this.addDocChange(doc, func);
+      });
+
     this.fileInfo[trackID] = { allFunctions: functions, updates: updateThese };
+    this.treeHistory[trackID] = tree;
     return updateThese;
+  }
+
+  public closeFile(doc: vscode.Uri) {
+    let trackID = hashUri(doc);
+    delete this.fileInfo[trackID];
+    delete this.treeHistory[trackID];
+  }
+
+  public updateRange(
+    doc: vscode.TextDocument,
+    changes: readonly vscode.TextDocumentContentChangeEvent[]
+  ) {
+    let docId = hashID(doc);
+    let edits: Edit[] = [];
+    let tree = this.treeHistory[docId];
+    if (!tree) {
+      return;
+    }
+    changes.forEach((change) => {
+      let startIndex = change.rangeOffset;
+      let oldEndIndex = startIndex + change.rangeLength;
+      let newEndIndex = startIndex + change.text.length;
+      let startPosition: Point = {
+        row: change.range.start.line,
+        column: change.range.start.character,
+      };
+      let oldEndPosition: Point = {
+        row: change.range.end.line,
+        column: change.range.end.character,
+      };
+      let vscodeEnd = doc.positionAt(newEndIndex);
+      let newEndPosition: Point = {
+        row: vscodeEnd.line,
+        column: vscodeEnd.character,
+      };
+      let edit = {
+        startIndex: startIndex,
+        oldEndIndex: oldEndIndex,
+        newEndIndex: newEndIndex,
+        startPosition: startPosition,
+        oldEndPosition: oldEndPosition,
+        newEndPosition: newEndPosition,
+      };
+      tree.edit(edit);
+      edits.push(edit);
+    });
+    if (this.fileInfo[docId]) {
+      this.fileInfo[docId].allFunctions.forEach((func) => {
+        updateFunctionRange(func, edits);
+      });
+    }
+    this.refreshDocChanges(doc);
+  }
+
+  private refreshDocChanges(doc: vscode.TextDocument) {
+    let trackID = hashID(doc);
+    if (!(trackID in this.changedFunctions)) {
+      this.changedFunctions[trackID] = {};
+    }
+    let changedFunctions = Object.values(this.changedFunctions[trackID]);
+    for (let index in this.changedFunctions[trackID])
+      delete this.changedFunctions[trackID][index];
+    changedFunctions.forEach((func) => {
+      this.changedFunctions[hashFunction(func)] = func;
+    });
   }
 
   public getHistory(doc: vscode.TextDocument): {
     allFunctions: Function[];
     updates: { [key: string]: Function[] };
+    tree: Tree | undefined;
   } {
     let trackID = hashID(doc);
     if (!(trackID in this.fileInfo)) {
-      console.error("Could not find history with hash (" + trackID + ")");
       return {
         allFunctions: [],
         updates: { new: [], deleted: [], updated: [] },
+        tree: undefined,
       };
     }
-    return this.fileInfo[trackID];
+    return { ...this.fileInfo[trackID], tree: this.treeHistory[trackID] };
+  }
+
+  public getDocChanges(doc: vscode.TextDocument): { [key: number]: Function } {
+    let trackID = hashID(doc);
+    if (!(trackID in this.changedFunctions)) {
+      this.changedFunctions[trackID] = {};
+    }
+    return this.changedFunctions[trackID];
+  }
+
+  public deleteDocChange(doc: vscode.TextDocument, func: Function) {
+    let funcId = hashFunction(func);
+    let docChanges = this.getDocChanges(doc);
+    if (docChanges[funcId]) {
+      delete docChanges[funcId];
+      return true;
+    }
+    return false;
+  }
+
+  public addDocChange(doc: vscode.TextDocument, func: Function): boolean {
+    let docChanges = this.getDocChanges(doc);
+    let funcId = hashFunction(func);
+    docChanges[funcId] = func;
+    return docChanges[funcId] != undefined;
   }
 
   /**
@@ -98,6 +214,7 @@ export class ChangeDetectionService {
       idMatching[id]["new"] = func;
     });
 
+    //Fil idMatching with old functions
     history.forEach((func: Function) => {
       let id = hashFunction(func);
       if (!(id in idMatching)) {
@@ -135,19 +252,90 @@ export class ChangeDetectionService {
   }
 }
 
-let compareFunctions = (function1: Function, function2: Function): number => {
-    let sum = 0;
-    sum += levenshtein.get(function1.body, function2.body);
-    sum += levenshtein.get(function1.definition, function2.definition);
-    sum += levenshtein.get(function1.text, function2.text);
-    return sum;
-    
-}
+let updateFunctionRange = (func: Function, changes: Edit[]) => {
+  //Define vars
+  let totDocTopOffset = 0,
+    totDocBottomOffset = 0,
+    totDocstringPointOffset = 0,
+    totFuncTopOffset = 0,
+    totFuncBottomOffset = 0,
+    totDefLineOffset = 0;
 
-export let hashFunction = (func: Function): string => {
-    return md5(func.name + func.params.join(","))
-}
+  changes.forEach((edit) => {
+    //Init needed values lmao
+    let offsetDiff = edit.newEndIndex - edit.oldEndIndex;
+    let lineOffset = edit.newEndPosition.row - edit.oldEndPosition.row;
+    let bottomOffset = func.range[1];
+
+    // If the changes happened above the function, we need to update the range
+    if (edit.oldEndIndex <= bottomOffset) {
+      //Check if the docstring was affected
+      if (func.docstring_range) {
+        //Determine if either of the docstring range points were affected
+        if (edit.oldEndIndex <= func.docstring_range[0]) {
+          totDocTopOffset += offsetDiff;
+        }
+        if (edit.oldEndIndex <= func.docstring_range[1]) {
+          totDocBottomOffset += offsetDiff;
+        }
+      }
+
+      //Check if the docstring point was affected
+      if (edit.oldEndIndex <= func.docstring_offset) {
+        totDocstringPointOffset += offsetDiff;
+      }
+
+      //Determine if either of the function range points were affected
+      if (edit.oldEndIndex <= func.range[0]) {
+        totFuncTopOffset += offsetDiff;
+      }
+      if (edit.oldEndIndex <= func.range[1]) {
+        totFuncBottomOffset += offsetDiff;
+      }
+
+      //Check if defline was affected
+      if (edit.oldEndPosition.row <= func.definition_line) {
+        totDefLineOffset += lineOffset;
+      }
+    }
+  });
+  if (func.docstring_range) {
+    //Define the docstring range in terms of offsets
+
+    func.docstring_range[0] += totDocTopOffset;
+    func.docstring_range[1] += totDocBottomOffset;
+  }
+  if (func.docstring_offset) {
+    func.docstring_offset += totDocstringPointOffset;
+  }
+
+  func.range[0] += totFuncTopOffset;
+  func.range[1] += totFuncBottomOffset;
+
+  func.definition_line += totDefLineOffset;
+};
+
+let compareFunctions = (function1: Function, function2: Function): number => {
+  let sum = 0;
+  sum += levenshtein.get(function1.body, function2.body);
+  return sum;
+};
+
+export let hashFunction = (func: Function): number => {
+  return func.definition_line;
+};
 
 export let hashID = (doc: vscode.TextDocument): string => {
-    return md5(doc.uri.path.toString())
-}
+  return md5(doc.uri.path.toString());
+};
+
+export let hashUri = (uri: vscode.Uri): string => {
+  return md5(uri.path.toString());
+};
+
+let changeDetectionService: ChangeDetectionService =
+  new ChangeDetectionService();
+
+export let getChangeDetectionService = () => {
+  return changeDetectionService;
+};

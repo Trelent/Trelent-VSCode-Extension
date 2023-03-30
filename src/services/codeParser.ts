@@ -4,9 +4,13 @@ const Parser = require("web-tree-sitter");
 import { getLanguageName, isLanguageSupported } from "../helpers/langs";
 import { parseFunctions, parseText } from "../parser/parser";
 import { Function } from "../parser/types";
-import { ChangeDetectionService } from "../autodoc/changeDetection";
+import {
+  ChangeDetectionService,
+  getChangeDetectionService,
+} from "../autodoc/changeDetection";
 import DocstringInsertService from "../autodoc/DocstringInsertService";
 import { TelemetryService } from "./telemetry";
+import { Tree } from "web-tree-sitter";
 
 const getGrammarPath = (context: vscode.ExtensionContext, language: string) => {
   let grammarPath = context.asAbsolutePath(
@@ -36,7 +40,7 @@ export class CodeParserService {
     telemetryService: TelemetryService
   ) {
     this.telemetryService = telemetryService;
-    this.changeDetectionService = new ChangeDetectionService();
+    this.changeDetectionService = getChangeDetectionService();
     this.autodocService = new DocstringInsertService(
       context,
       this,
@@ -92,9 +96,11 @@ export class CodeParserService {
     const lang = getLanguageName(doc.languageId, doc.fileName);
     if (!isLanguageSupported(lang)) return [];
 
+    let tree: Tree | undefined =
+      this.changeDetectionService.getHistory(doc).tree;
     // Parse the document
-    await this.safeParseText(doc.getText(), lang);
-    
+    await this.safeParseText(doc.getText(), lang, tree);
+
     // Return the functions that are now stored in the service
     return this.getFunctions();
   };
@@ -105,21 +111,33 @@ export class CodeParserService {
     // Filter bad input (mostly for supported languages etc)
     if (!isLanguageSupported(lang)) return;
 
-    await this.safeParseText(doc.getText(), lang);
+    let tree: Tree | undefined =
+      this.changeDetectionService.getHistory(doc).tree;
+
+    let newTree = await this.safeParseText(doc.getText(), lang, tree);
+    if (!newTree) {
+      return {};
+    }
     let functions = this.getFunctions();
     if (functions.length == 0) {
       return {};
     }
 
     // This returns a list of the functions we want to highlight or update
-    return this.changeDetectionService.trackState(doc, functions);
+    return this.changeDetectionService.trackState(doc, functions, newTree);
   };
 
-  public safeParseText = async (text: string, lang: string) => {
+  public safeParseText = async (
+    text: string,
+    lang: string,
+    tree: Tree | undefined = undefined
+  ) => {
     if (!this.loadedLanguages[lang]) return;
     if (!this.parser) return;
-    await parseText(text, this.loadedLanguages[lang], this.parser)
+    let retTree: Tree | undefined = undefined;
+    await parseText(text, this.loadedLanguages[lang], this.parser, tree)
       .then((tree) => {
+        retTree = tree;
         return parseFunctions(tree, lang, this.loadedLanguages[lang]);
       })
       .then((functions) => {
@@ -128,6 +146,7 @@ export class CodeParserService {
       .catch((err) => {
         console.error(err);
       });
+    return retTree;
   };
 
   public getFunctions() {

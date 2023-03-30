@@ -23,8 +23,6 @@ export function run(): Promise<void> {
       // Add files to the test suite
       files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
       await extensions.getExtension("Trelent.trelent")?.activate();
-      let extensionContext = (global as any).testExtensionContext;
-      await createCodeParserService(extensionContext, getTelemetryService());
 
       try {
         mocha.timeout(0);

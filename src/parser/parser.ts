@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Language, QueryCapture, Tree } from "web-tree-sitter";
+import { Range, Language, QueryCapture, Tree } from "web-tree-sitter";
 import { getAllFuncsQuery } from "./queries";
 import { parsePythonFunctions } from "./langs/python";
 import { parseCSharpFunctions } from "./langs/csharp";
@@ -11,13 +11,17 @@ import { parseTypeScriptFunctions } from "./langs/typescript";
 export const parseText = async (
   text: string,
   language: Language,
-  parser: any
+  parser: any,
+  tree: Tree | undefined = undefined
 ) => {
   // Set the parser language
   parser.setLanguage(language);
 
   //Parse the document
-  return parser.parse(text) as Tree;
+  if (!tree) {
+    return parser.parse(text) as Tree;
+  }
+  return parser.parse(text, tree) as Tree;
 };
 
 export const parseFunctions = async (
@@ -38,7 +42,7 @@ export const parseFunctions = async (
 
   //Get the parser for the language
   let parser = getParser(lang);
-  
+
   if (!parser) {
     console.error(`Could not find parser for lang ${lang}`);
     return [];
@@ -58,7 +62,7 @@ const getParser = (lang: string) => {
     java: parseJavaFunctions,
     csharp: parseCSharpFunctions,
     javascript: parseJavaScriptFunctions,
-    typescript: parseTypeScriptFunctions
+    typescript: parseTypeScriptFunctions,
   };
   return parsers[lang];
 };

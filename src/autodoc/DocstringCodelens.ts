@@ -61,7 +61,10 @@ class AutodocCodelensProvider implements vscode.CodeLensProvider {
         arguments: [document, func],
       };
 
-      const range = document.lineAt(func.range[0][0]).range;
+      const range = new vscode.Range(
+        document.positionAt(func.range[0]),
+        document.positionAt(func.range[1])
+      );
       items.push(
         new vscode.CodeLens(range, updateDocstringCommand),
         new vscode.CodeLens(range, ignoreCommand)

@@ -72,7 +72,7 @@ export default class DocstringDecorator implements vscode.Disposable {
         );
         let recommendedDocstringRange = new vscode.Range(
           doc.positionAt(recommendedDocstringPos),
-          new vscode.Position(func.range[1][0], 0)
+          doc.positionAt(func.range[1])
         );
         //Insert Decorations
 

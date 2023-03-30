@@ -1,9 +1,5 @@
 import * as vscode from "vscode";
 
-export const PARSE_CURRENT_FUNCTION_URL =
-  "https://lambda.trelent.net/api/v4/ParseCurrent/ParseCurrentFunction";
-export const PARSE_FUNCTIONS_URL =
-  "https://lambda.trelent.net/api/v4/ParseAll/ParseSourceCode";
 const CHECKOUT_REDIRECT = `${vscode.env.uriScheme}://trelent.trelent/checkout`;
 const PORTAL_REDIRECT = `${vscode.env.uriScheme}://trelent.trelent/portal`;
 
