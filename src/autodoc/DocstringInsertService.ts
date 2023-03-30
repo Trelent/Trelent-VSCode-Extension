@@ -60,12 +60,6 @@ export default class DocstringInsertService {
     let timeoutId: NodeJS.Timeout | undefined = undefined;
     vscode.workspace.onDidChangeTextDocument(
       async (event: vscode.TextDocumentChangeEvent) => {
-        if (
-          event.reason == vscode.TextDocumentChangeReason.Undo ||
-          event.reason == vscode.TextDocumentChangeReason.Redo
-        ) {
-          return;
-        }
         try {
           //Update range references
           this.codeParserService.changeDetectionService.updateRange(
@@ -84,7 +78,12 @@ export default class DocstringInsertService {
           //Set a new timeout
           timeoutId = setTimeout(
             (e) => {
-              this.updateDocstrings(e.document);
+              if (
+                event.reason != vscode.TextDocumentChangeReason.Undo &&
+                event.reason != vscode.TextDocumentChangeReason.Redo
+              ) {
+                this.updateDocstrings(e.document);
+              }
             },
             this.CHANGE_TIME_THRESHOLD,
             event
