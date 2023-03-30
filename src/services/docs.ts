@@ -1,7 +1,7 @@
 /* eslint-disable eqeqeq */
 import * as vscode from "vscode";
 
-import { requestDocstrings, parseCurrentFunction } from "../api/api";
+import { requestDocstrings } from "../api/api";
 import { isLanguageSupported } from "../helpers/langs";
 import { ModuleGatherer } from "../helpers/modules";
 import { TelemetryService } from "./telemetry";

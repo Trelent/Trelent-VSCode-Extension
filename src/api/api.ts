@@ -12,7 +12,6 @@ import {
   GET_PORTAL_URL,
   GET_USER_URL,
   WRITE_DOCSTRING_URL,
-  PARSE_CURRENT_FUNCTION_URL,
   CHECKOUT_RETURN_URL,
   PORTAL_RETURN_URL,
 } from "./conf";
@@ -69,7 +68,12 @@ export const requestDocstrings = async (
   language: string,
   modulesContext: string | null
 ): Promise<any> => {
-  let dataArr: { success: boolean; error: string; data: any; function: Function}[] = [];
+  let dataArr: {
+    success: boolean;
+    error: string;
+    data: any;
+    function: Function;
+  }[] = [];
 
   let token = await TokenManager.getToken(context);
 
@@ -106,7 +110,7 @@ export const requestDocstrings = async (
           let result = response.data;
           dataArr.push({
             ...result,
-            function: func
+            function: func,
           });
         })
         .catch((error: any) => {
@@ -117,27 +121,4 @@ export const requestDocstrings = async (
   );
 
   return dataArr;
-};
-
-export const parseCurrentFunction = (
-  document: string,
-  language: string,
-  cursor: number[]
-): Promise<any> => {
-  // Setup our request body
-  let reqBody = {
-    cursor: cursor,
-    language: language,
-    source: document,
-  };
-
-  // Send the request
-  return axios({
-    method: "POST",
-    url: PARSE_CURRENT_FUNCTION_URL,
-    data: JSON.stringify(reqBody),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
 };
