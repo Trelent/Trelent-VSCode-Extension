@@ -28,7 +28,9 @@ const Accordion: React.FC<AccordionProps> = ({
           ▼
         </span>
       </div>
-      {isOpen && <div className="p-4 bg-gray-700 text-white">{content}</div>}
+      {isOpen && (
+        <div className="px-4 pb-4 bg-transparent text-white">{content}</div>
+      )}
     </div>
   );
 };
