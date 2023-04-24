@@ -1,5 +1,27 @@
 import packageData from "../package.json";
 import Accordion from "./components/Accordion";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
+
+const autoModeExample = `def maintained(): # @trelent-auto
+  """
+  This function will have its docstring kept
+  up to date automatically!
+  """
+  print("A utopian world")`;
+
+const highlightPerFunctionExample = `def highlighted(): # @trelent-highlight
+  """This function will be highlighted!"""
+  print("A pleasant world")`;
+
+const disablePerFunctionExample = `def disabled(): # @trelent-disable
+  """
+  This function will never be highlighted
+  nor have its docstring updated.
+  """
+  print("A bleak world")`;
+
+const theme = vs2015;
 
 const GettingStarted = () => {
   return (
@@ -81,11 +103,33 @@ const UsingAutodoc = () => {
 
       <h3 className="mt-3 text-lg text-white font-bold">Tag Examples</h3>
       <p className="text-base text-gray-200">
-        Here are some examples of how to use the Autodoc tags:
-        <br />
-        <br />
-        <img className="w-2/3" src="example.svg" />
+        Here are some examples of how to use the Autodoc tags. Note the tags in
+        green on the same line as the function definition.
       </p>
+      <h5 className="text-white font-bold mt-3">@trelent-auto</h5>
+      <SyntaxHighlighter
+        language="python"
+        style={theme}
+        showInlineLineNumbers={false}
+      >
+        {autoModeExample}
+      </SyntaxHighlighter>
+      <h5 className="text-white font-bold mt-3">@trelent-highlight</h5>
+      <SyntaxHighlighter
+        language="python"
+        style={theme}
+        showInlineLineNumbers={false}
+      >
+        {highlightPerFunctionExample}
+      </SyntaxHighlighter>
+      <h5 className="text-white font-bold mt-3">@trelent-disable</h5>
+      <SyntaxHighlighter
+        language="python"
+        style={theme}
+        showInlineLineNumbers={false}
+      >
+        {disablePerFunctionExample}
+      </SyntaxHighlighter>
     </div>
   );
 };
@@ -123,8 +167,16 @@ export default function app() {
             content={<GettingStarted />}
             title="Getting Started"
           />
-          <Accordion content={<UsingAutodoc />} title="Using Autodoc" />
-          <Accordion content={<WhatsNext />} title="What's Next" />
+          <Accordion
+            defaultOpen={true}
+            content={<UsingAutodoc />}
+            title="Using Autodoc"
+          />
+          <Accordion
+            defaultOpen={true}
+            content={<WhatsNext />}
+            title="What's Next"
+          />
         </div>
         <div className="grid grid-cols-1 gap-4 mx-auto max-w-4xl">
           <div className="relative flex flex-col items-center justify-center w-full h-full p-4 text-left bg-gray-800 sm:p-8">
