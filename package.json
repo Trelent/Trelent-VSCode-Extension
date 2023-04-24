@@ -240,7 +240,7 @@
     "mixpanel-browser": "^2.45.0",
     "polka": "^0.5.2",
     "ts-node": "^10.9.1",
-    "web-tree-sitter": "^0.20.7",
+    "web-tree-sitter": "0.20.7",
     "web-vitals": "^3.1.0"
   },
   "browserslist": [
