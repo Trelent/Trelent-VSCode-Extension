@@ -32,17 +32,17 @@ export class ChangeDetectionService {
     const autodocThreshold = trelentConfig.get("autodoc.changeThreshold");
     switch (autodocThreshold) {
       case "Passive":
-        this.levenshtein_update_threshold = 250;
+        this.levenshtein_update_threshold = 1000;
         break;
       case "Neutral":
-        this.levenshtein_update_threshold = 150;
+        this.levenshtein_update_threshold = 500;
         break;
       case "Aggressive":
-        this.levenshtein_update_threshold = 50;
+        this.levenshtein_update_threshold = 250;
         break;
       default:
         // Default to passive
-        this.levenshtein_update_threshold = 250;
+        this.levenshtein_update_threshold = 1000;
         break;
     }
   };

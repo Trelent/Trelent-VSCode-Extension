@@ -3,7 +3,7 @@
   "name": "trelent",
   "displayName": "Trelent - AI Docstrings on Demand",
   "description": "We write and maintain docstrings for your code automatically!",
-  "version": "2.0.0-rc1",
+  "version": "2.0.0-rc2",
   "repository": "https://github.com/Trelent/Trelent-VSCode-Extension",
   "icon": "images/trelent-icon.png",
   "galleryBanner": {
@@ -240,7 +240,7 @@
     "mixpanel-browser": "^2.45.0",
     "polka": "^0.5.2",
     "ts-node": "^10.9.1",
-    "web-tree-sitter": "^0.20.7",
+    "web-tree-sitter": "0.20.7",
     "web-vitals": "^3.1.0"
   },
   "browserslist": [
