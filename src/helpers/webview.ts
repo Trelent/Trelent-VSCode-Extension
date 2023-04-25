@@ -40,7 +40,7 @@ class ReactPanel {
     // Create and show a new webview panel
     this._panel = vscode.window.createWebviewPanel(
       ReactPanel.viewType,
-      "Welcome to Trelent!",
+      "Trelent Help",
       column,
       {
         // Enable javascript in the webview
@@ -126,7 +126,9 @@ class ReactPanel {
 				<title>Trelent Help</title>
 				<link rel="stylesheet" type="text/css" href="${styleUri}">
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;">
-				<base href="${vscode.Uri.file(path.join(this._extensionPath, "build", "react-help-app")).with({
+				<base href="${vscode.Uri.file(
+          path.join(this._extensionPath, "build", "react-help-app")
+        ).with({
           scheme: "vscode-resource",
         })}/">
 			</head>
@@ -153,46 +155,5 @@ function getNonce() {
 
 export const openWebView = (context: vscode.ExtensionContext) => {
   // Create and show panel
-  const panel = ReactPanel.createOrShow(context.extensionPath);
-
-  /*
-  const panel = vscode.window.createWebviewPanel(
-    "trelentPage",
-    "Trelent",
-    vscode.ViewColumn.One,
-    {
-      enableScripts: true,
-    }
-  );
-
-  if (url) {
-    // And set its HTML content
-    axios
-      .get(url)
-      .then((response: any) => {
-        panel.webview.html = response.data;
-      })
-      .catch((error: any) => {
-        console.error(error);
-  }
-  */
-};
-
-// TODO: Fix this so we can load styles in from our public site
-const getWebviewContent = (url: string, panel: vscode.WebviewPanel) => {
-  // load webview content as url
-  return `
-        <!DOCTYPE html>
-        <html lang="en" style="padding:0; margin: 0;">
-        <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${panel.webview.cspSource} https:; script-src 'unsafe-inline' 'unsafe-eval' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Trelent</title>
-        </head>
-        <body style="padding:0; margin: 0;">
-            <iframe src="${url}" style="width: 100vw; height: 100vh; border: none;"></iframe>
-        </body>
-        </html>
-    `;
+  ReactPanel.createOrShow(context.extensionPath);
 };
