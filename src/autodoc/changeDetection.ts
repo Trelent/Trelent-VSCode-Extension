@@ -3,7 +3,6 @@ import { Function } from "../parser/types";
 import * as md5 from "md5";
 import * as levenshtein from "fast-levenshtein";
 import { Edit, Point, Tree } from "web-tree-sitter";
-import { getCodeParserService } from "../services/codeParser";
 
 export class ChangeDetectionService {
   fileInfo: {
@@ -59,6 +58,7 @@ export class ChangeDetectionService {
         updates: { new: [], deleted: [], updated: [] },
       };
     }
+
     let updateThese = this.getChangedFunctions(doc, functions);
     // Remove deleted functions from docstring recommendations
     updateThese.deleted.forEach((func) => {
@@ -67,13 +67,16 @@ export class ChangeDetectionService {
 
     // Update function updates
     Object.keys(updateThese)
-      .filter((title) => title != "deleted")
+      .filter((title) => title != "deleted" && title != "all")
       .flatMap((title) => updateThese[title])
       .forEach((func) => {
         this.addDocChange(doc, func);
       });
 
-    this.fileInfo[trackID] = { allFunctions: functions, updates: updateThese };
+    this.fileInfo[trackID] = {
+      allFunctions: updateThese["all"],
+      updates: updateThese,
+    };
     this.treeHistory[trackID] = tree;
     return updateThese;
   }
@@ -169,6 +172,19 @@ export class ChangeDetectionService {
 
   public deleteDocChange(doc: vscode.TextDocument, func: Function) {
     let funcId = hashFunction(func);
+    let docId = hashID(doc);
+
+    // Reset lev distance sum to 0 when a change is ignored
+    this.fileInfo[docId].allFunctions = this.fileInfo[
+      docId
+    ].allFunctions.filter((f) => hashFunction(f) != funcId);
+
+    this.fileInfo[docId].allFunctions.push({
+      ...func,
+      levenshteinDistanceSum: 0,
+    });
+
+    // Delete the function from the doc changes list
     let docChanges = this.getDocChanges(doc);
     if (docChanges[funcId]) {
       delete docChanges[funcId];
@@ -197,6 +213,7 @@ export class ChangeDetectionService {
     let history = this.getHistory(doc).allFunctions;
 
     let returnObj: { [key: string]: Function[] } = {
+      all: functions,
       new: [],
       deleted: [],
       updated: [],
@@ -230,21 +247,34 @@ export class ChangeDetectionService {
       if ("old" in functionPair) {
         //If the function still exists
         if ("new" in functionPair) {
-          if (
-            compareFunctions(functionPair["old"], functionPair["new"]) >
-            this.levenshtein_update_threshold
-          ) {
-            returnObj.updated.push(functionPair["new"]);
+          // Calculate the levenshtein distance between the old and new function
+          const newLevDistance = compareFunctions(
+            functionPair["old"],
+            functionPair["new"]
+          );
+
+          // Backfill the levenshtein distance sum for the new function into the file history
+          let fundWithLevenshteinDistance: Function = {
+            ...functionPair["new"],
+            levenshteinDistanceSum: newLevDistance,
+          };
+          returnObj.all.push(fundWithLevenshteinDistance);
+
+          if (newLevDistance > this.levenshtein_update_threshold) {
+            // If beyond the threshold, add to updated list
+            returnObj.updated.push(fundWithLevenshteinDistance);
           }
         }
         //If the function was deleted
         else {
           returnObj.deleted.push(functionPair["old"]);
+          returnObj.all.push(functionPair["old"]);
         }
       }
       //If this is a new function
       else {
         returnObj.new.push(functionPair["new"]);
+        returnObj.all.push(functionPair["new"]);
       }
     });
 
@@ -316,7 +346,7 @@ let updateFunctionRange = (func: Function, changes: Edit[]) => {
 };
 
 let compareFunctions = (function1: Function, function2: Function): number => {
-  let sum = 0;
+  let sum = function1.levenshteinDistanceSum || 0;
   sum += levenshtein.get(function1.body, function2.body);
   return sum;
 };
