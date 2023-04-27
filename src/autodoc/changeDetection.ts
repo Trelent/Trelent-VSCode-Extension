@@ -59,26 +59,27 @@ export class ChangeDetectionService {
       };
     }
 
-    let updateThese = this.getChangedFunctions(doc, functions);
+    let functionsToUpdate = this.getChangedFunctions(doc, functions);
+
     // Remove deleted functions from docstring recommendations
-    updateThese.deleted.forEach((func) => {
+    functionsToUpdate.deleted.forEach((func) => {
       this.deleteChangedFunctionForDocument(doc, func);
     });
 
     // Update function updates
-    Object.keys(updateThese)
+    Object.keys(functionsToUpdate)
       .filter((title) => title != "deleted" && title != "all")
-      .flatMap((title) => updateThese[title])
+      .flatMap((title) => functionsToUpdate[title])
       .forEach((func) => {
         this.addChangedFunctionForDocument(doc, func);
       });
 
     this.openDocuments[documentId] = {
-      allFunctions: updateThese["all"],
-      updates: updateThese,
+      allFunctions: functionsToUpdate["all"],
+      updates: functionsToUpdate,
     };
     this.openDocumentTrees[documentId] = tree;
-    return updateThese;
+    return functionsToUpdate;
   }
 
   public closeFile(doc: vscode.Uri) {
@@ -91,9 +92,9 @@ export class ChangeDetectionService {
     doc: vscode.TextDocument,
     changes: readonly vscode.TextDocumentContentChangeEvent[]
   ) {
-    let docId = hashDocumentPath(doc);
+    let documentId = hashDocumentPath(doc);
     let edits: Edit[] = [];
-    let tree = this.openDocumentTrees[docId];
+    let tree = this.openDocumentTrees[documentId];
     if (!tree) {
       return;
     }
@@ -125,8 +126,8 @@ export class ChangeDetectionService {
       tree.edit(edit);
       edits.push(edit);
     });
-    if (this.openDocuments[docId]) {
-      this.openDocuments[docId].allFunctions.forEach((func) => {
+    if (this.openDocuments[documentId]) {
+      this.openDocuments[documentId].allFunctions.forEach((func) => {
         updateFunctionRange(func, edits);
       });
     }
@@ -135,12 +136,17 @@ export class ChangeDetectionService {
 
   private refreshDocChanges(doc: vscode.TextDocument) {
     let documentId = hashDocumentPath(doc);
+
+    // Skip if the document is no longer open
     if (!(documentId in this.changedFunctions)) {
       this.changedFunctions[documentId] = {};
     }
+
     let changedFunctions = Object.values(this.changedFunctions[documentId]);
-    for (let index in this.changedFunctions[documentId])
+    for (let index in this.changedFunctions[documentId]) {
       delete this.changedFunctions[documentId][index];
+    }
+
     changedFunctions.forEach((func) => {
       this.changedFunctions[hashFunction(func)] = func;
     });
@@ -180,14 +186,14 @@ export class ChangeDetectionService {
     func: Function
   ) {
     let funcId = hashFunction(func);
-    let docId = hashDocumentPath(doc);
+    let documentId = hashDocumentPath(doc);
 
     // Reset lev distance sum to 0 when a change is ignored
-    this.openDocuments[docId].allFunctions = this.openDocuments[
-      docId
+    this.openDocuments[documentId].allFunctions = this.openDocuments[
+      documentId
     ].allFunctions.filter((f) => hashFunction(f) != funcId);
 
-    this.openDocuments[docId].allFunctions.push({
+    this.openDocuments[documentId].allFunctions.push({
       ...func,
       levenshteinDistanceSum: 0,
     });
@@ -304,7 +310,7 @@ export class ChangeDetectionService {
 }
 
 let updateFunctionRange = (func: Function, changes: Edit[]) => {
-  //Define vars
+  // Offset vars
   let totDocTopOffset = 0,
     totDocBottomOffset = 0,
     totDocstringPointOffset = 0,
@@ -313,7 +319,7 @@ let updateFunctionRange = (func: Function, changes: Edit[]) => {
     totDefLineOffset = 0;
 
   changes.forEach((edit) => {
-    //Init needed values lmao
+    // Init needed values lmao
     let offsetDiff = edit.newEndIndex - edit.oldEndIndex;
     let lineOffset = edit.newEndPosition.row - edit.oldEndPosition.row;
     let bottomOffset = func.range[1];

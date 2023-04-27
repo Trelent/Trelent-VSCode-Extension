@@ -205,7 +205,7 @@ export default class DocstringInsertService {
    * @param editor: vscode.TextEditor Get the current editor
    * @param document: vscode.TextDocument Get the document that is currently open in the editor
    *
-   * @return A promise that resolves to a number
+   * @return A promise that resolves to void
    *
    * @docauthor Trelent
    */
