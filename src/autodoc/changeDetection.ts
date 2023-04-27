@@ -76,7 +76,11 @@ export class ChangeDetectionService {
 
     this.openDocuments[documentId] = {
       allFunctions: functionsToUpdate["all"],
-      updates: functionsToUpdate,
+      updates: {
+        new: functionsToUpdate["new"],
+        deleted: functionsToUpdate["deleted"],
+        updated: functionsToUpdate["updated"],
+      },
     };
     this.openDocumentTrees[documentId] = tree;
     return functionsToUpdate;

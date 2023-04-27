@@ -67,7 +67,6 @@ suite("Range offset tests", () => {
       const changesArray = Object.values(changedFunctions).flatMap(
         (val) => val
       );
-      console.log("Changes reporteed:", changesArray);
 
       assert.strictEqual(changesArray.length, 0, "No changes being reported");
     }
