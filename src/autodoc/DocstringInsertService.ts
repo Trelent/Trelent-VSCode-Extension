@@ -142,7 +142,7 @@ export default class DocstringInsertService {
     document: vscode.TextDocument,
     functionToIgnore: Function
   ) {
-    this.codeParserService.changeDetectionService.deleteDocChange(
+    this.codeParserService.changeDetectionService.deleteChangedFunctionForDocument(
       document,
       functionToIgnore
     );
@@ -162,7 +162,9 @@ export default class DocstringInsertService {
     this.applyHighlights(document);
 
     let fileHistory =
-      this.codeParserService.changeDetectionService.getHistory(document);
+      this.codeParserService.changeDetectionService.getDocumentFunctionData(
+        document
+      );
 
     let allFunctions = fileHistory.allFunctions;
     if (this.updating.has(document)) {
@@ -172,7 +174,9 @@ export default class DocstringInsertService {
 
     try {
       let functionsToDocument = Object.values(
-        this.codeParserService.changeDetectionService.getDocChanges(document)
+        this.codeParserService.changeDetectionService.getChangedFunctionsForDocument(
+          document
+        )
       );
       // Get tagged functions, and remove any that should be ignored
       let taggedFunctions = this.getFunctionTags(functionsToDocument);
@@ -358,7 +362,10 @@ export default class DocstringInsertService {
   }
 
   public markAsChanged(doc: vscode.TextDocument, func: Function) {
-    this.codeParserService.changeDetectionService.deleteDocChange(doc, func);
+    this.codeParserService.changeDetectionService.deleteChangedFunctionForDocument(
+      doc,
+      func
+    );
   }
 
   private async applyHighlights(
@@ -367,7 +374,7 @@ export default class DocstringInsertService {
   ) {
     if (!allFunctions) {
       allFunctions =
-        this.codeParserService.changeDetectionService.getHistory(
+        this.codeParserService.changeDetectionService.getDocumentFunctionData(
           doc
         ).allFunctions;
     }
@@ -377,13 +384,15 @@ export default class DocstringInsertService {
         return;
       }
       allFunctions =
-        this.codeParserService.changeDetectionService.getHistory(
+        this.codeParserService.changeDetectionService.getDocumentFunctionData(
           doc
         ).allFunctions;
     }
     //Get tagged functions
     let functionsToDocument: Function[] = Object.values(
-      this.codeParserService.changeDetectionService.getDocChanges(doc)
+      this.codeParserService.changeDetectionService.getChangedFunctionsForDocument(
+        doc
+      )
     ).map(
       (oldFunc) =>
         allFunctions?.find(

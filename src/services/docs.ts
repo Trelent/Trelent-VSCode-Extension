@@ -64,7 +64,7 @@ let writeDocstring = async (
 
   await parser.parse(editor.document);
   // Get currently selected function
-  let functions = parser.changeDetectionService.getHistory(
+  let functions = parser.changeDetectionService.getDocumentFunctionData(
     editor.document
   ).allFunctions;
 

@@ -97,7 +97,7 @@ export class CodeParserService {
     if (!isLanguageSupported(lang)) return [];
 
     let tree: Tree | undefined =
-      this.changeDetectionService.getHistory(doc).tree;
+      this.changeDetectionService.getDocumentFunctionData(doc).tree;
     // Parse the document
     await this.safeParseText(doc.getText(), lang, tree);
 
@@ -112,7 +112,7 @@ export class CodeParserService {
     if (!isLanguageSupported(lang)) return;
 
     let tree: Tree | undefined =
-      this.changeDetectionService.getHistory(doc).tree;
+      this.changeDetectionService.getDocumentFunctionData(doc).tree;
 
     let newTree = await this.safeParseText(doc.getText(), lang, tree);
     if (!newTree) {
