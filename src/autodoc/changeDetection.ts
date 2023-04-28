@@ -299,7 +299,6 @@ export class ChangeDetectionService {
         //If the function was deleted
         else {
           returnObj.deleted.push(functionPair["old"]);
-          returnObj.all.push(functionPair["old"]);
         }
       }
       //If this is a new function
