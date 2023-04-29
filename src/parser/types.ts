@@ -11,6 +11,7 @@ export type Function = {
   params: string[];
   range: number[]; // [[start col, start line], [end col, end line]]
   text: string;
+  levenshteinDistanceSum?: number;
 };
 
 export type QueryGroup = {

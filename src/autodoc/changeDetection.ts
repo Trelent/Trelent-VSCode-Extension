@@ -3,10 +3,9 @@ import { Function } from "../parser/types";
 import * as md5 from "md5";
 import * as levenshtein from "fast-levenshtein";
 import { Edit, Point, Tree } from "web-tree-sitter";
-import { getCodeParserService } from "../services/codeParser";
 
 export class ChangeDetectionService {
-  fileInfo: {
+  openDocuments: {
     [key: string]: {
       allFunctions: Function[];
       updates: { [key: string]: Function[] };
@@ -14,7 +13,7 @@ export class ChangeDetectionService {
   } = {};
   private changedFunctions: { [key: string]: { [key: number]: Function } } = {};
 
-  treeHistory: {
+  openDocumentTrees: {
     [key: string]: Tree;
   } = {};
 
@@ -52,45 +51,54 @@ export class ChangeDetectionService {
     functions: Function[],
     tree: Tree
   ) {
-    let trackID = hashID(doc);
-    if (!(trackID in this.fileInfo)) {
-      this.fileInfo[trackID] = {
+    let documentId = hashDocumentPath(doc);
+    if (!(documentId in this.openDocuments)) {
+      this.openDocuments[documentId] = {
         allFunctions: functions,
         updates: { new: [], deleted: [], updated: [] },
       };
     }
-    let updateThese = this.getChangedFunctions(doc, functions);
+
+    let functionsToUpdate = this.getChangedFunctions(doc, functions);
+
     // Remove deleted functions from docstring recommendations
-    updateThese.deleted.forEach((func) => {
-      this.deleteDocChange(doc, func);
+    functionsToUpdate.deleted.forEach((func) => {
+      this.deleteChangedFunctionForDocument(doc, func);
     });
 
     // Update function updates
-    Object.keys(updateThese)
-      .filter((title) => title != "deleted")
-      .flatMap((title) => updateThese[title])
+    Object.keys(functionsToUpdate)
+      .filter((title) => title != "deleted" && title != "all")
+      .flatMap((title) => functionsToUpdate[title])
       .forEach((func) => {
-        this.addDocChange(doc, func);
+        this.addChangedFunctionForDocument(doc, func);
       });
 
-    this.fileInfo[trackID] = { allFunctions: functions, updates: updateThese };
-    this.treeHistory[trackID] = tree;
-    return updateThese;
+    this.openDocuments[documentId] = {
+      allFunctions: functionsToUpdate["all"],
+      updates: {
+        new: functionsToUpdate["new"],
+        deleted: functionsToUpdate["deleted"],
+        updated: functionsToUpdate["updated"],
+      },
+    };
+    this.openDocumentTrees[documentId] = tree;
+    return functionsToUpdate;
   }
 
   public closeFile(doc: vscode.Uri) {
-    let trackID = hashUri(doc);
-    delete this.fileInfo[trackID];
-    delete this.treeHistory[trackID];
+    let documentId = hashUri(doc);
+    delete this.openDocuments[documentId];
+    delete this.openDocumentTrees[documentId];
   }
 
   public updateRange(
     doc: vscode.TextDocument,
     changes: readonly vscode.TextDocumentContentChangeEvent[]
   ) {
-    let docId = hashID(doc);
+    let documentId = hashDocumentPath(doc);
     let edits: Edit[] = [];
-    let tree = this.treeHistory[docId];
+    let tree = this.openDocumentTrees[documentId];
     if (!tree) {
       return;
     }
@@ -122,8 +130,8 @@ export class ChangeDetectionService {
       tree.edit(edit);
       edits.push(edit);
     });
-    if (this.fileInfo[docId]) {
-      this.fileInfo[docId].allFunctions.forEach((func) => {
+    if (this.openDocuments[documentId]) {
+      this.openDocuments[documentId].allFunctions.forEach((func) => {
         updateFunctionRange(func, edits);
       });
     }
@@ -131,45 +139,71 @@ export class ChangeDetectionService {
   }
 
   private refreshDocChanges(doc: vscode.TextDocument) {
-    let trackID = hashID(doc);
-    if (!(trackID in this.changedFunctions)) {
-      this.changedFunctions[trackID] = {};
+    let documentId = hashDocumentPath(doc);
+
+    // Skip if the document is no longer open
+    if (!(documentId in this.changedFunctions)) {
+      this.changedFunctions[documentId] = {};
     }
-    let changedFunctions = Object.values(this.changedFunctions[trackID]);
-    for (let index in this.changedFunctions[trackID])
-      delete this.changedFunctions[trackID][index];
+
+    let changedFunctions = Object.values(this.changedFunctions[documentId]);
+    for (let index in this.changedFunctions[documentId]) {
+      delete this.changedFunctions[documentId][index];
+    }
+
     changedFunctions.forEach((func) => {
       this.changedFunctions[hashFunction(func)] = func;
     });
   }
 
-  public getHistory(doc: vscode.TextDocument): {
+  public getDocumentFunctionData(doc: vscode.TextDocument): {
     allFunctions: Function[];
     updates: { [key: string]: Function[] };
     tree: Tree | undefined;
   } {
-    let trackID = hashID(doc);
-    if (!(trackID in this.fileInfo)) {
+    let documentId = hashDocumentPath(doc);
+    if (!(documentId in this.openDocuments)) {
       return {
         allFunctions: [],
         updates: { new: [], deleted: [], updated: [] },
         tree: undefined,
       };
     }
-    return { ...this.fileInfo[trackID], tree: this.treeHistory[trackID] };
+    return {
+      ...this.openDocuments[documentId],
+      tree: this.openDocumentTrees[documentId],
+    };
   }
 
-  public getDocChanges(doc: vscode.TextDocument): { [key: number]: Function } {
-    let trackID = hashID(doc);
-    if (!(trackID in this.changedFunctions)) {
-      this.changedFunctions[trackID] = {};
+  public getChangedFunctionsForDocument(doc: vscode.TextDocument): {
+    [key: number]: Function;
+  } {
+    let documentId = hashDocumentPath(doc);
+    if (!(documentId in this.changedFunctions)) {
+      this.changedFunctions[documentId] = {};
     }
-    return this.changedFunctions[trackID];
+    return this.changedFunctions[documentId];
   }
 
-  public deleteDocChange(doc: vscode.TextDocument, func: Function) {
+  public deleteChangedFunctionForDocument(
+    doc: vscode.TextDocument,
+    func: Function
+  ) {
     let funcId = hashFunction(func);
-    let docChanges = this.getDocChanges(doc);
+    let documentId = hashDocumentPath(doc);
+
+    // Reset lev distance sum to 0 when a change is ignored
+    this.openDocuments[documentId].allFunctions = this.openDocuments[
+      documentId
+    ].allFunctions.filter((f) => hashFunction(f) != funcId);
+
+    this.openDocuments[documentId].allFunctions.push({
+      ...func,
+      levenshteinDistanceSum: 0,
+    });
+
+    // Delete the function from the doc changes list
+    let docChanges = this.getChangedFunctionsForDocument(doc);
     if (docChanges[funcId]) {
       delete docChanges[funcId];
       return true;
@@ -177,8 +211,11 @@ export class ChangeDetectionService {
     return false;
   }
 
-  public addDocChange(doc: vscode.TextDocument, func: Function): boolean {
-    let docChanges = this.getDocChanges(doc);
+  public addChangedFunctionForDocument(
+    doc: vscode.TextDocument,
+    func: Function
+  ): boolean {
+    let docChanges = this.getChangedFunctionsForDocument(doc);
     let funcId = hashFunction(func);
     docChanges[funcId] = func;
     return docChanges[funcId] != undefined;
@@ -194,9 +231,10 @@ export class ChangeDetectionService {
     doc: vscode.TextDocument,
     functions: Function[]
   ): { [key: string]: Function[] } {
-    let history = this.getHistory(doc).allFunctions;
+    let history = this.getDocumentFunctionData(doc).allFunctions;
 
     let returnObj: { [key: string]: Function[] } = {
+      all: functions,
       new: [],
       deleted: [],
       updated: [],
@@ -230,11 +268,32 @@ export class ChangeDetectionService {
       if ("old" in functionPair) {
         //If the function still exists
         if ("new" in functionPair) {
-          if (
-            compareFunctions(functionPair["old"], functionPair["new"]) >
-            this.levenshtein_update_threshold
-          ) {
-            returnObj.updated.push(functionPair["new"]);
+          // Calculate the levenshtein distance between the old and new function
+          const newLevDistance = compareFunctions(
+            functionPair["old"],
+            functionPair["new"]
+          );
+
+          // Remove the previous version of the function from the history
+          returnObj.all = returnObj.all.filter(
+            (f) => hashFunction(f) != hashFunction(functionPair["old"])
+          );
+
+          // Backfill the levenshtein distance sum for the new function into the file history
+          let funcWithLevenshteinDistance: Function = {
+            ...functionPair["new"],
+            levenshteinDistanceSum: newLevDistance,
+          };
+          returnObj.all.push(funcWithLevenshteinDistance);
+
+          if (newLevDistance > this.levenshtein_update_threshold) {
+            // If beyond the threshold, add to updated list
+            console.log(
+              "Updated function: " + funcWithLevenshteinDistance.name,
+              "passed",
+              this.levenshtein_update_threshold
+            );
+            returnObj.updated.push(funcWithLevenshteinDistance);
           }
         }
         //If the function was deleted
@@ -245,6 +304,7 @@ export class ChangeDetectionService {
       //If this is a new function
       else {
         returnObj.new.push(functionPair["new"]);
+        returnObj.all.push(functionPair["new"]);
       }
     });
 
@@ -253,7 +313,7 @@ export class ChangeDetectionService {
 }
 
 let updateFunctionRange = (func: Function, changes: Edit[]) => {
-  //Define vars
+  // Offset vars
   let totDocTopOffset = 0,
     totDocBottomOffset = 0,
     totDocstringPointOffset = 0,
@@ -262,7 +322,7 @@ let updateFunctionRange = (func: Function, changes: Edit[]) => {
     totDefLineOffset = 0;
 
   changes.forEach((edit) => {
-    //Init needed values lmao
+    // Init needed values lmao
     let offsetDiff = edit.newEndIndex - edit.oldEndIndex;
     let lineOffset = edit.newEndPosition.row - edit.oldEndPosition.row;
     let bottomOffset = func.range[1];
@@ -316,7 +376,7 @@ let updateFunctionRange = (func: Function, changes: Edit[]) => {
 };
 
 let compareFunctions = (function1: Function, function2: Function): number => {
-  let sum = 0;
+  let sum = function1.levenshteinDistanceSum || 0;
   sum += levenshtein.get(function1.body, function2.body);
   return sum;
 };
@@ -325,7 +385,7 @@ export let hashFunction = (func: Function): number => {
   return func.definition_line;
 };
 
-export let hashID = (doc: vscode.TextDocument): string => {
+export let hashDocumentPath = (doc: vscode.TextDocument): string => {
   return md5(doc.uri.path.toString());
 };
 

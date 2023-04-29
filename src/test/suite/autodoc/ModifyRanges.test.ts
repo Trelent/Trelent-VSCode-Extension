@@ -45,25 +45,30 @@ suite("Range offset tests", () => {
   });
 
   test("Offsetting range does not cause changes", async () => {
+    console.log("Hello from test offset range!");
     for (let i = 0; i < documents.length; i++) {
       let document = documents[i];
       let editor = await vscode.window.showTextDocument(document);
       await editor?.edit((editBuilder) => {
         editBuilder.insert(new vscode.Position(0, 0), " ");
       });
+
+      const docFunctionData =
+        codeParser.changeDetectionService.getDocumentFunctionData(document);
+      const allDocumentFunctions = docFunctionData.allFunctions;
+
       assert.strictEqual(
-        codeParser.changeDetectionService.getHistory(document).allFunctions
-          .length,
+        allDocumentFunctions.length,
         EXPECTED_FUNCTIONS[i],
-        "Functions being added to history"
+        "Functions being parsed after offsetting range"
       );
-      let changes =
-        codeParser.changeDetectionService.getHistory(document).updates;
-      assert.strictEqual(
-        Object.values(changes).flatMap((val) => val).length,
-        0,
-        "No changes being reported"
+
+      const changedFunctions = docFunctionData.updates;
+      const changesArray = Object.values(changedFunctions).flatMap(
+        (val) => val
       );
+
+      assert.strictEqual(changesArray.length, 0, "No changes being reported");
     }
   });
 });
