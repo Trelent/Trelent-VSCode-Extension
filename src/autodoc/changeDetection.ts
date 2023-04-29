@@ -8,7 +8,6 @@ export class ChangeDetectionService {
   openDocuments: {
     [key: string]: {
       allFunctions: Function[];
-      updates: { [key: string]: Function[] };
     };
   } = {};
   private changedFunctions: { [key: string]: { [key: number]: Function } } = {};
@@ -55,7 +54,6 @@ export class ChangeDetectionService {
     if (!(documentId in this.openDocuments)) {
       this.openDocuments[documentId] = {
         allFunctions: functions,
-        updates: { new: [], deleted: [], updated: [] },
       };
     }
 
@@ -76,11 +74,6 @@ export class ChangeDetectionService {
 
     this.openDocuments[documentId] = {
       allFunctions: functionsToUpdate["all"],
-      updates: {
-        new: functionsToUpdate["new"],
-        deleted: functionsToUpdate["deleted"],
-        updated: functionsToUpdate["updated"],
-      },
     };
     this.openDocumentTrees[documentId] = tree;
     return functionsToUpdate;
@@ -158,14 +151,12 @@ export class ChangeDetectionService {
 
   public getDocumentFunctionData(doc: vscode.TextDocument): {
     allFunctions: Function[];
-    updates: { [key: string]: Function[] };
     tree: Tree | undefined;
   } {
     let documentId = hashDocumentPath(doc);
     if (!(documentId in this.openDocuments)) {
       return {
         allFunctions: [],
-        updates: { new: [], deleted: [], updated: [] },
         tree: undefined,
       };
     }
